@@ -38,12 +38,12 @@ namespace EventManagementService.Controllers
         [HttpGet("{id}")]
         public ActionResult<Event> GetEventById(int id)
         {
-            Event @event = _eventService.GetEventById(id);
+            Event existingEvent = _eventService.GetEventById(id);
 
-            if (@event != null)
-                return Ok(@event);
+            if (existingEvent != null)
+                return Ok(existingEvent);
 
-            return NotFound();
+            return NotFound("Событие по указанному Id не найдено!");
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace EventManagementService.Controllers
             var result = _eventService.ChangeEvent(id, eventDto);
 
             if (!result) 
-                return NotFound();
+                return NotFound("Событие по указанному Id не найдено!");
             
             return NoContent();
         }
@@ -86,7 +86,7 @@ namespace EventManagementService.Controllers
             var result = _eventService.RemoveEvent(id);
 
             if (!result) 
-                return NotFound();
+                return NotFound("Событие по указанному Id не найдено!");
 
             return NoContent();
         }
