@@ -3,9 +3,9 @@
 namespace EventManagementService.Dtos
 {
     /// <summary>
-    /// DTO событие для CRUD операций создание/обновление
+    /// DTO событие для запросов
     /// </summary>
-    public class EventDto : IValidatableObject
+    public class RequestEventDto : IValidatableObject
     {
         /// <summary>
         /// Название события.

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace EventManagementService.Models
+﻿namespace EventManagementService.Models
 {
     public class Event
     {

@@ -1,5 +1,4 @@
 ﻿using EventManagementService.Dtos;
-using EventManagementService.Models;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,9 +23,9 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <returns>Список объектов событий.</returns>
         [HttpGet]
-        public ActionResult<IEnumerable<Event>> GetAllEvents()
+        public ActionResult<IEnumerable<ResponseEventDto>> GetAllEvents()
         {
-            IEnumerable<Event> events = _eventService.GetEvents();
+            IEnumerable<ResponseEventDto> events = _eventService.GetEvents();
             return Ok(events);
         }
 
@@ -36,12 +35,12 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
         [HttpGet("{id}")]
-        public ActionResult<Event> GetEventById(int id)
+        public ActionResult<ResponseEventDto> GetEventById(int id)
         {
-            Event existingEvent = _eventService.GetEventById(id);
+            ResponseEventDto responseEventDto = _eventService.GetEventById(id)!;
 
-            if (existingEvent != null)
-                return Ok(existingEvent);
+            if (responseEventDto != null)
+                return Ok(responseEventDto);
 
             return NotFound("Событие по указанному Id не найдено!");
         }
@@ -49,30 +48,30 @@ namespace EventManagementService.Controllers
         /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
-        /// <param name="eventDto">Новый объект события.</param>
+        /// <param name="requestEventDto">Новый объект события.</param>
         /// <returns>Возвращает новый объект созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
-        public ActionResult<Event> AddEvent([FromBody] EventDto eventDto)
+        public ActionResult<ResponseEventDto> AddEvent([FromBody] RequestEventDto requestEventDto)
         {
-            Event @event = _eventService.AddEvent(eventDto);
+            ResponseEventDto ResponseEventDto = _eventService.AddEvent(requestEventDto);
 
             return CreatedAtAction(
                 nameof(GetEventById),
-                new { id = @event.Id },
-                @event);
+                new { id = ResponseEventDto.Id },
+                ResponseEventDto);
         }
 
         /// <summary>
         /// Метод обновляет существующий объект события.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <param name="eventDto">Событие с новыми данными для обновления.</param>
+        /// <param name="requestEventDto">Событие с новыми данными для обновления.</param>
         /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
         [HttpPut("{id}")]
-        public ActionResult ChangeEvent(int id, [FromBody] EventDto eventDto)
+        public ActionResult ChangeEvent(int id, [FromBody] RequestEventDto requestEventDto)
         {
-            var result = _eventService.ChangeEvent(id, eventDto);
+            var result = _eventService.ChangeEvent(id, requestEventDto);
 
             if (!result) 
                 return NotFound("Событие по указанному Id не найдено!");

@@ -1,18 +1,17 @@
 ﻿using EventManagementService.Dtos;
-using EventManagementService.Models;
 
 namespace EventManagementService.Services
 {
     public interface IEventService
     {
         /// <summary>
-        /// Получает список событий.
+        /// Получает коллекцию событий.
         /// </summary>
         /// <returns>
-        /// Список объектов событий.
-        /// Если события отсутствуют, возвращается пустой список.
+        /// Коллекция объектов событий.
+        /// Если события отсутствуют, возвращается пустая коллекция.
         /// </returns>
-        IEnumerable<Event> GetEvents();
+        IEnumerable<ResponseEventDto> GetEvents();
 
         /// <summary>
         /// Получает событие по Id.
@@ -24,18 +23,18 @@ namespace EventManagementService.Services
         /// Объект события с указанным Id.
         /// Если событие не найдено, возвращается null.
         /// </returns>
-        Event GetEventById(int id);
+        ResponseEventDto? GetEventById(int id);
 
         /// <summary>
-        /// Добавляет событие в список событий.
+        /// Добавляет событие в коллекцию событий.
         /// </summary>
-        /// <param name="eventDto">
+        /// <param name="requestEventDto">
         /// Объект события содержащий необходимую информацию.
         /// </param>
         /// <returns>
         /// Объект нового события.
         /// </returns>
-        Event AddEvent(EventDto eventDto);
+        ResponseEventDto AddEvent(RequestEventDto requestEventDto);
 
         /// <summary>
         /// Вносит изменение в существующее событие.
@@ -43,16 +42,16 @@ namespace EventManagementService.Services
         /// <param name="id">
         /// Уникальный идентификатор события для внесения изменений.
         /// </param>
-        /// <param name="eventDto">
+        /// <param name="requestEventDto">
         /// Объект события с новыми данными.
         /// </param>
         /// <returns>
         /// Результат выполнения операции true/false.
         /// </returns>
-        bool ChangeEvent(int id, EventDto eventDto);
+        bool ChangeEvent(int id, RequestEventDto requestEventDto);
 
         /// <summary>
-        /// Удаляет событие из списка событий.
+        /// Удаляет событие из коллекции событий.
         /// </summary>
         /// <param name="id">
         /// Уникальный идентификатор события.

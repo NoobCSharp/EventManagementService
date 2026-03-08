@@ -1,48 +1,57 @@
 ﻿using EventManagementService.Dtos;
+using EventManagementService.Mappers;
 using EventManagementService.Models;
 
 namespace EventManagementService.Services
 {
     public class EventService : IEventService
     {
+        /// <summary>
+        /// Хранилище событий
+        /// </summary>
         private static readonly List<Event> _events = new List<Event>();
 
-        public IEnumerable<Event> GetEvents()
-        {
-            return _events;
+        public IEnumerable<ResponseEventDto> GetEvents()
+        {    
+            return _events.Select(EventMapper.EventToResponse);
         }
 
-        public Event GetEventById(int id)
+        public ResponseEventDto? GetEventById(int id)
         {
-            return _events.FirstOrDefault(e => e.Id == id)!;
+            Event existingEvent = _events.FirstOrDefault(e => e.Id == id)!;
+
+            if (existingEvent != null)
+                return EventMapper.EventToResponse(existingEvent);
+
+            return default;
         }
 
-        public Event AddEvent(EventDto eventDto)
+        public ResponseEventDto AddEvent(RequestEventDto requestEventDto)
         {
             Event @event = new()
             {
                 Id = _events.Any() ? _events.Max(e => e.Id) + 1 : 1,
-                Title = eventDto.Title,
-                Description = eventDto.Description,
-                StartAt = eventDto.StartAt,
-                EndAt = eventDto.EndAt
+                Title = requestEventDto.Title,
+                Description = requestEventDto.Description,
+                StartAt = requestEventDto.StartAt,
+                EndAt = requestEventDto.EndAt
             };
 
             _events.Add(@event);
 
-            return @event;
+            return EventMapper.EventToResponse(@event);
         }
 
-        public bool ChangeEvent(int id, EventDto eventDto)
+        public bool ChangeEvent(int id, RequestEventDto requestEventDto)
         {
-            Event existingEvent = GetEventById(id);
+            Event existingEvent = _events.FirstOrDefault(e => e.Id == id)!;
 
             if (existingEvent != null)
             {
-                existingEvent.Title = eventDto.Title;
-                existingEvent.Description = eventDto.Description;
-                existingEvent.StartAt = eventDto.StartAt;
-                existingEvent.EndAt = eventDto.EndAt;
+                existingEvent.Title = requestEventDto.Title;
+                existingEvent.Description = requestEventDto.Description;
+                existingEvent.StartAt = requestEventDto.StartAt;
+                existingEvent.EndAt = requestEventDto.EndAt;
 
                 return true;
             }
