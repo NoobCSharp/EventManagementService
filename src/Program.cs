@@ -1,4 +1,4 @@
-using EventManagementService.Services;
+﻿using EventManagementService.Services;
 
 namespace EventManagementService
 {
