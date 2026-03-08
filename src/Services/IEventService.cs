@@ -9,7 +9,7 @@ namespace EventManagementService.Services
         /// Получает список событий.
         /// </summary>
         /// <returns>
-        /// Список событий.
+        /// Список объектов событий.
         /// Если события отсутствуют, возвращается пустой список.
         /// </returns>
         IEnumerable<Event> GetEvents();
@@ -21,7 +21,7 @@ namespace EventManagementService.Services
         /// Уникальный идентификатор события.
         /// </param>
         /// <returns>
-        /// Событие с указанным Id.
+        /// Объект события с указанным Id.
         /// Если событие не найдено, возвращается null.
         /// </returns>
         Event GetEventById(int id);
@@ -32,7 +32,10 @@ namespace EventManagementService.Services
         /// <param name="eventDto">
         /// Объект события содержащий необходимую информацию.
         /// </param>
-        void AddEvent(EventDto eventDto);
+        /// <returns>
+        /// Объект нового события.
+        /// </returns>
+        Event AddEvent(EventDto eventDto);
 
         /// <summary>
         /// Вносит изменение в существующее событие.

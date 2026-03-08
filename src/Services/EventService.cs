@@ -17,7 +17,7 @@ namespace EventManagementService.Services
             return _events.FirstOrDefault(e => e.Id == id)!;
         }
 
-        public void AddEvent(EventDto eventDto)
+        public Event AddEvent(EventDto eventDto)
         {
             Event @event = new()
             {
@@ -29,6 +29,8 @@ namespace EventManagementService.Services
             };
 
             _events.Add(@event);
+
+            return @event;
         }
 
         public bool ChangeEvent(int id, EventDto eventDto)

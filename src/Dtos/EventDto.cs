@@ -22,13 +22,13 @@ namespace EventManagementService.Dtos
         /// Дата начала события.
         /// </summary>
         [Required]
-        public DateTime StartAt { get; set; }
+        public DateTime? StartAt { get; set; }
 
         /// <summary>
         /// Дата окончания события.
         /// </summary>
         [Required]
-        public DateTime EndAt { get; set; }
+        public DateTime? EndAt { get; set; }
 
         /// <summary>
         /// Метод проверяет, что дата окончания EndAt больше даты начала StartAt.

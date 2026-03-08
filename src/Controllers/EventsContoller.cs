@@ -9,7 +9,7 @@ namespace EventManagementService.Controllers
     /// Контроллер событий.  
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("events")]
     public class EventsContoller : ControllerBase
     {
         private  readonly IEventService _eventService;
@@ -20,9 +20,9 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод возвращает список событий.
+        /// Метод возвращает список объектов событий.
         /// </summary>
-        /// <returns>Список событий.</returns>
+        /// <returns>Список объектов событий.</returns>
         [HttpGet]
         public ActionResult<IEnumerable<Event>> GetAllEvents()
         {
@@ -31,7 +31,7 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод возвращает событие по Id из списка.
+        /// Метод возвращает объект события по Id из списка.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
@@ -47,19 +47,24 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод добавляет событие в список.
+        /// Метод добавляет объект события в коллекцию.
         /// </summary>
-        /// <param name="eventDto">Новое событие.</param>
+        /// <param name="eventDto">Новый объект события.</param>
+        /// <returns>Возвращает новый объект созданного события
+        /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
-        public ActionResult AddEvent([FromBody] EventDto eventDto)
+        public ActionResult<Event> AddEvent([FromBody] EventDto eventDto)
         {
-            _eventService.AddEvent(eventDto);
+            Event @event = _eventService.AddEvent(eventDto);
 
-            return Created();
+            return CreatedAtAction(
+                nameof(GetEventById),
+                new { id = @event.Id },
+                @event);
         }
 
         /// <summary>
-        /// Метод обновляет существующее событие.
+        /// Метод обновляет существующий объект события.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <param name="eventDto">Событие с новыми данными для обновления.</param>
@@ -76,7 +81,7 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод удаляет событие по Id.
+        /// Метод удаляет объект событие по Id из коллекции.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
