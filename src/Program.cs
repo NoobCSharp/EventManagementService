@@ -1,4 +1,5 @@
-﻿using EventManagementService.Services;
+﻿using EventManagementService.Middlewares.ExceptionMiddleware;
+using EventManagementService.Services;
 
 namespace EventManagementService
 {
@@ -20,6 +21,9 @@ namespace EventManagementService
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            app.UseExceptionHandlingMiddleware();
+   
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();

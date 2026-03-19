@@ -1,4 +1,5 @@
 ﻿using EventManagementService.Dtos;
+using EventManagementService.Exceptions;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,7 +43,7 @@ namespace EventManagementService.Controllers
             if (responseEventDto != null)
                 return Ok(responseEventDto);
 
-            return NotFound("Событие по указанному Id не найдено!");
+            throw new NotFoundException("Событие по указанному Id не найдено!");
         }
 
         /// <summary>
@@ -73,8 +74,8 @@ namespace EventManagementService.Controllers
         {
             var result = _eventService.ChangeEvent(id, requestEventDto);
 
-            if (!result) 
-                return NotFound("Событие по указанному Id не найдено!");
+            if (!result)
+                throw new NotFoundException("Событие по указанному Id не найдено!");
             
             return NoContent();
         }
@@ -89,8 +90,8 @@ namespace EventManagementService.Controllers
         {
             var result = _eventService.RemoveEvent(id);
 
-            if (!result) 
-                return NotFound("Событие по указанному Id не найдено!");
+            if (!result)
+                throw new NotFoundException("Событие по указанному Id не найдено!");
 
             return NoContent();
         }
