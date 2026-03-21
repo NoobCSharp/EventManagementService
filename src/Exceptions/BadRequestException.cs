@@ -1,9 +1,9 @@
 ﻿namespace EventManagementService.Exceptions
 {
-    public class BadRequestException : Exception
+    public sealed class BadRequestException : DomainException
     {
-        public string Title => "Bad request";
-        public int StatusCode => StatusCodes.Status400BadRequest;
+        public override string Title => "Bad request";
+        public override int StatusCode => StatusCodes.Status400BadRequest;
 
         public BadRequestException(string message) : base(message)
         {

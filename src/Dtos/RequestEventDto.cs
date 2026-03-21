@@ -5,30 +5,30 @@ namespace EventManagementService.Dtos
     /// <summary>
     /// DTO событие для запросов
     /// </summary>
-    public class RequestEventDto : IValidatableObject
+    public record RequestEventDto : IValidatableObject
     {
         /// <summary>
         /// Название события.
         /// </summary>
         [Required(ErrorMessage = "Название события обязательно")]
-        public string Title { get; set; } = string.Empty;
+        public string Title { get; init; } = string.Empty;
 
         /// <summary>
         /// Описание события.
         /// </summary>
-        public string? Description { get; set; }
+        public string? Description { get; init; }
 
         /// <summary>
         /// Дата начала события.
         /// </summary>
         [Required]
-        public DateTime? StartAt { get; set; }
+        public DateTime? StartAt { get; init; }
 
         /// <summary>
         /// Дата окончания события.
         /// </summary>
         [Required]
-        public DateTime? EndAt { get; set; }
+        public DateTime? EndAt { get; init; }
 
         /// <summary>
         /// Метод проверяет, что дата окончания EndAt больше даты начала StartAt.

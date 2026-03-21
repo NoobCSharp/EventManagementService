@@ -1,13 +1,12 @@
 ﻿namespace EventManagementService.Exceptions
 {
-    public class NotFoundException : Exception
+    public sealed class NotFoundException : DomainException
     {
-        public string Title => "Resource not found";
-        public int StatusCode => StatusCodes.Status404NotFound;
+        public override string Title => "Resource not found";
+        public override int StatusCode => StatusCodes.Status404NotFound;
 
         public NotFoundException(string message) : base(message)
-        {
-            
+        { 
         }
     }
 }

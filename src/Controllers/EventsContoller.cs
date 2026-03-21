@@ -1,5 +1,4 @@
 ﻿using EventManagementService.Dtos;
-using EventManagementService.Exceptions;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,41 +19,37 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод возвращает список объектов событий.
+        /// Метод возвращает объект PaginatedResultDto.
         /// </summary>
-        /// <returns>Список объектов событий.</returns>
+        /// <returns>Объект PaginatedResultDto сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
-        public ActionResult<IEnumerable<ResponseEventDto>> GetAllEvents()
+        public ActionResult<PaginatedResultDto> GetAllEvents([FromQuery] string? title, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            IEnumerable<ResponseEventDto> events = _eventService.GetEvents();
-            return Ok(events);
+            PaginatedResultDto paginatedResult = _eventService.GetEvents(title, from, to, page, pageSize);
+            return Ok(paginatedResult);
         }
 
         /// <summary>
         /// Метод возвращает объект события по Id из списка.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
+        /// <returns>Объект ResponseEventDto.</returns>
         [HttpGet("{id}")]
         public ActionResult<ResponseEventDto> GetEventById(int id)
         {
             ResponseEventDto responseEventDto = _eventService.GetEventById(id)!;
-
-            if (responseEventDto != null)
-                return Ok(responseEventDto);
-
-            throw new NotFoundException("Событие по указанному Id не найдено!");
+            return Ok(responseEventDto);
         }
 
         /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
         /// <param name="requestEventDto">Новый объект события.</param>
-        /// <returns>Возвращает новый объект созданного события
+        /// <returns>Возвращает новый объект ResponseEventDto созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
         public ActionResult<ResponseEventDto> AddEvent([FromBody] RequestEventDto requestEventDto)
-        {
+        {          
             ResponseEventDto ResponseEventDto = _eventService.AddEvent(requestEventDto);
 
             return CreatedAtAction(
@@ -67,16 +62,11 @@ namespace EventManagementService.Controllers
         /// Метод обновляет существующий объект события.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <param name="requestEventDto">Событие с новыми данными для обновления.</param>
-        /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
+        /// <param name="requestEventDto">Объект RequestEventDto с новыми данными для обновления.</param>
         [HttpPut("{id}")]
         public ActionResult ChangeEvent(int id, [FromBody] RequestEventDto requestEventDto)
         {
-            var result = _eventService.ChangeEvent(id, requestEventDto);
-
-            if (!result)
-                throw new NotFoundException("Событие по указанному Id не найдено!");
-            
+            _eventService.ChangeEvent(id, requestEventDto);
             return NoContent();
         }
 
@@ -84,15 +74,10 @@ namespace EventManagementService.Controllers
         /// Метод удаляет объект событие по Id из коллекции.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
         [HttpDelete("{id}")]
         public IActionResult DeleteEvent(int id)
         {
-            var result = _eventService.RemoveEvent(id);
-
-            if (!result)
-                throw new NotFoundException("Событие по указанному Id не найдено!");
-
+            _eventService.RemoveEvent(id);
             return NoContent();
         }
     }

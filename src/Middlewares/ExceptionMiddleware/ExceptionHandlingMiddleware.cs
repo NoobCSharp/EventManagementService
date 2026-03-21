@@ -98,31 +98,5 @@ namespace EventManagementService.Middlewares.ExceptionMiddleware
 
             await context.Response.WriteAsJsonAsync(problem);
         }
-
-
-
-
-
-        //private static Task HandleExceptionAsync(HttpContext context, Exception ex)
-        //{
-        //    var statusCode = ex switch
-        //    {
-        //        BadRequestException => StatusCodes.Status400BadRequest,
-        //        NotFoundException => StatusCodes.Status404NotFound,
-        //        _ => StatusCodes.Status500InternalServerError
-        //    };
-
-        //    context.Response.ContentType = "application/json";
-        //    context.Response.StatusCode = statusCode;
-
-        //    var problem = new ProblemDetails()
-        //    {
-        //        Title = "Request processing error",
-        //        Status = statusCode,
-        //        Detail = ex.Message
-        //    };
-
-        //    return context.Response.WriteAsJsonAsync(problem);
-        //}
     }
 }
