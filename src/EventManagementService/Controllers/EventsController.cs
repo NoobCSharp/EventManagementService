@@ -1,4 +1,5 @@
 ﻿using EventManagementService.Dtos;
+using EventManagementService.Filters;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,51 +10,47 @@ namespace EventManagementService.Controllers
     /// </summary>
     [ApiController]
     [Route("events")]
-    public class EventsContoller : ControllerBase
+    public class EventsController : ControllerBase
     {
         private  readonly IEventService _eventService;
 
-        public EventsContoller(IEventService eventService)
+        public EventsController(IEventService eventService)
         {
             _eventService = eventService;
         }
 
         /// <summary>
-        /// Метод возвращает список объектов событий.
+        /// Метод возвращает объект PaginatedResultDto.
         /// </summary>
-        /// <returns>Список объектов событий.</returns>
+        /// <returns>Объект PaginatedResultDto сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
-        public ActionResult<IEnumerable<ResponseEventDto>> GetAllEvents()
+        public ActionResult<PaginatedResultDto> GetAllEvents([FromQuery] EventFilter eventFilter)
         {
-            IEnumerable<ResponseEventDto> events = _eventService.GetEvents();
-            return Ok(events);
+            PaginatedResultDto paginatedResult = _eventService.GetEvents(eventFilter);
+            return Ok(paginatedResult);
         }
 
         /// <summary>
         /// Метод возвращает объект события по Id из списка.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
+        /// <returns>Объект ResponseEventDto.</returns>
         [HttpGet("{id}")]
         public ActionResult<ResponseEventDto> GetEventById(int id)
         {
-            ResponseEventDto responseEventDto = _eventService.GetEventById(id)!;
-
-            if (responseEventDto != null)
-                return Ok(responseEventDto);
-
-            return NotFound("Событие по указанному Id не найдено!");
+            ResponseEventDto responseEventDto = _eventService.GetEventById(id);
+            return Ok(responseEventDto);
         }
 
         /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
         /// <param name="requestEventDto">Новый объект события.</param>
-        /// <returns>Возвращает новый объект созданного события
+        /// <returns>Возвращает новый объект ResponseEventDto созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
         public ActionResult<ResponseEventDto> AddEvent([FromBody] RequestEventDto requestEventDto)
-        {
+        {          
             ResponseEventDto ResponseEventDto = _eventService.AddEvent(requestEventDto);
 
             return CreatedAtAction(
@@ -66,16 +63,11 @@ namespace EventManagementService.Controllers
         /// Метод обновляет существующий объект события.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <param name="requestEventDto">Событие с новыми данными для обновления.</param>
-        /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
+        /// <param name="requestEventDto">Объект RequestEventDto с новыми данными для обновления.</param>
         [HttpPut("{id}")]
         public ActionResult ChangeEvent(int id, [FromBody] RequestEventDto requestEventDto)
         {
-            var result = _eventService.ChangeEvent(id, requestEventDto);
-
-            if (!result) 
-                return NotFound("Событие по указанному Id не найдено!");
-            
+            _eventService.ChangeEvent(id, requestEventDto);
             return NoContent();
         }
 
@@ -83,15 +75,10 @@ namespace EventManagementService.Controllers
         /// Метод удаляет объект событие по Id из коллекции.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <returns>В случае ошибки возвращаем результат со статусом Not Found.</returns>
         [HttpDelete("{id}")]
         public IActionResult DeleteEvent(int id)
         {
-            var result = _eventService.RemoveEvent(id);
-
-            if (!result) 
-                return NotFound("Событие по указанному Id не найдено!");
-
+            _eventService.RemoveEvent(id);
             return NoContent();
         }
     }

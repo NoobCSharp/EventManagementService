@@ -3,31 +3,31 @@
     /// <summary>
     /// DTO событие для ответов
     /// </summary>
-    public class ResponseEventDto
+    public record ResponseEventDto
     {
         /// <summary>
         /// Уникальный идентификатор события.
         /// </summary>
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         /// <summary>
         /// Название события.
         /// </summary>
-        public string? Title { get; set; }
+        public string Title { get; init; } = string.Empty;
 
         /// <summary>
         /// Описание события.
         /// </summary>
-        public string? Description { get; set; }
+        public string? Description { get; init; }
 
         /// <summary>
         /// Дата начала события.
         /// </summary>
-        public DateTime? StartAt { get; set; }
+        public DateTime StartAt { get; init; }
 
         /// <summary>
         /// Дата окончания события.
         /// </summary>
-        public DateTime? EndAt { get; set; }
+        public DateTime EndAt { get; init; }
     }
 }

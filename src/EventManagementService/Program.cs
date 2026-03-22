@@ -1,4 +1,6 @@
-﻿using EventManagementService.Services;
+﻿using EventManagementService.Middlewares.ExceptionMiddleware;
+using EventManagementService.Repositories;
+using EventManagementService.Services;
 
 namespace EventManagementService
 {
@@ -12,6 +14,7 @@ namespace EventManagementService
             builder.Services.AddSwaggerGen();
             builder.Services.AddControllers();
 
+            builder.Services.AddSingleton<IEventRepository, EventRepository>();
             builder.Services.AddScoped<IEventService, EventService>();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -20,6 +23,9 @@ namespace EventManagementService
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
+
+            app.UseExceptionHandlingMiddleware();
+   
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
