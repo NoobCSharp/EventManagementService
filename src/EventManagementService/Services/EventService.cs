@@ -49,7 +49,7 @@ namespace EventManagementService.Services
             };
         }
 
-        public ResponseEventDto? GetEventById(int id)
+        public ResponseEventDto GetEventById(int id)
         {
             Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.Id == id)!;
 

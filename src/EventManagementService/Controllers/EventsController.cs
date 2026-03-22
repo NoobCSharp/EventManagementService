@@ -38,7 +38,7 @@ namespace EventManagementService.Controllers
         [HttpGet("{id}")]
         public ActionResult<ResponseEventDto> GetEventById(int id)
         {
-            ResponseEventDto responseEventDto = _eventService.GetEventById(id)!;
+            ResponseEventDto responseEventDto = _eventService.GetEventById(id);
             return Ok(responseEventDto);
         }
 

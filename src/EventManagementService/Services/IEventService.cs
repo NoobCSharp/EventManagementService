@@ -26,7 +26,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект события с указанным Id.
         /// </returns>
-        ResponseEventDto? GetEventById(int id);
+        ResponseEventDto GetEventById(int id);
 
         /// <summary>
         /// Добавляет событие в коллекцию событий.
