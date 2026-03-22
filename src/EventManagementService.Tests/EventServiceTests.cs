@@ -351,7 +351,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void AddEvent_WithIncorrectData_ShouldThrow_ArgumentException()
+        public void AddEvent_WithIncorrectData_ShouldThrow_BadRequestException()
         {
             var events = CreateEvents();
             var mockRepository = new Mock<IEventRepository>();
@@ -371,14 +371,14 @@ namespace EventManagementService.Tests
             };
 
             // Assert(проверка)
-            // Проверяем что выбрасывается ожидаемое исключение ArgumentException
+            // Проверяем что выбрасывается ожидаемое исключение BadRequestException
             service.Invoking(s => s.AddEvent(requestEventDto))
                 .Should()
-                .Throw<ArgumentException>();
+                .Throw<BadRequestException>();
         }
 
         [Fact]
-        public void ChangeEvent_WithIncorrectData_EndAtEarlierStartAt()
+        public void ChangeEvent_WithIncorrectData_EndAtEarlierStartAt_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
             var events = CreateEvents();
@@ -399,10 +399,10 @@ namespace EventManagementService.Tests
             };
 
             // Assert(проверка)
-            // Проверяем что выбрасывается ожидаемое исключение ArgumentException
+            // Проверяем что выбрасывается ожидаемое исключение BadRequestException
             service.Invoking(s => s.ChangeEvent(1, requestEventDto))
                 .Should()
-                .Throw<ArgumentException>();
+                .Throw<BadRequestException>();
         }
 
         #endregion
