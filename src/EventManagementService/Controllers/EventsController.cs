@@ -1,5 +1,5 @@
 ﻿using EventManagementService.Dtos;
-using EventManagementService.Fiters;
+using EventManagementService.Filters;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,11 +10,11 @@ namespace EventManagementService.Controllers
     /// </summary>
     [ApiController]
     [Route("events")]
-    public class EventsContoller : ControllerBase
+    public class EventsController : ControllerBase
     {
         private  readonly IEventService _eventService;
 
-        public EventsContoller(IEventService eventService)
+        public EventsController(IEventService eventService)
         {
             _eventService = eventService;
         }

@@ -1,6 +1,6 @@
 ﻿using EventManagementService.Dtos;
 using EventManagementService.Exceptions;
-using EventManagementService.Fiters;
+using EventManagementService.Filters;
 using EventManagementService.Models;
 using EventManagementService.Repositories;
 using EventManagementService.Services;

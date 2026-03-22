@@ -1,5 +1,5 @@
 ﻿using EventManagementService.Dtos;
-using EventManagementService.Fiters;
+using EventManagementService.Filters;
 
 namespace EventManagementService.Services
 {

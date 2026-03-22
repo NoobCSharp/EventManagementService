@@ -1,4 +1,4 @@
-﻿namespace EventManagementService.Fiters
+﻿namespace EventManagementService.Filters
 {
     public record EventFilter
     {
