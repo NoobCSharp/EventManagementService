@@ -65,8 +65,11 @@ namespace EventManagementService.Services
 
         public ResponseEventDto AddEvent(RequestEventDto requestEventDto)
         {
+            if (string.IsNullOrWhiteSpace(requestEventDto.Title))
+                throw new BadRequestException("Название события обязательно к заполнению!");
+           
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
-                throw new BadHttpRequestException("Дата окончания события не может быть раньше даты начала события!");
+                throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
             //Подумать почему метод GetAvailableId в тесте возвращает 0 если не настраивать Mock
             int id = _eventRepository.GetAvailableId();
@@ -88,7 +91,7 @@ namespace EventManagementService.Services
         public void ChangeEvent(int id, RequestEventDto requestEventDto)
         {
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
-                throw new BadHttpRequestException("Дата окончания события не может быть раньше даты начала события!");
+                throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
             Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.Id == id)!;
 

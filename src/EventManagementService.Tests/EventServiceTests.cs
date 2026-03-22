@@ -53,11 +53,11 @@ namespace EventManagementService.Tests
             );
 
             // Assert (проверка)
-            // Проверяем что в коллекцию добавлено событие, проверяем по уникальному Id
+            // Проверяем, что в коллекцию добавлено событие, проверяем по уникальному Id
             var addedEvent = mockRepository.Object.Events.Single(e => e.Id == result.Id);
             //Проверяем что у добавленного соития совпадает Title
             addedEvent.Title.Should().Be("Test");
-            //Проверяем что у добавленного соития совпадает Description
+            //Проверяем, что у добавленного события совпадает Description
             addedEvent.Description.Should().Be("TestDescription");
 
         }
@@ -86,6 +86,34 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
+        public void GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
+        {
+            // Arrange (подготовка)
+            
+            var mockRepository = new Mock<IEventRepository>();
+            var events = CreateEvents();
+            mockRepository
+                .Setup(r => r.Events)
+                .Returns(events);
+
+            var service = new EventService(mockRepository.Object);
+            
+            var filter = new EventFilter()
+            {
+                Title = "Y",
+            };
+
+            // Act (действие)
+            var result = service.GetEvents(filter);
+
+            // Assert (проверка)
+            // Проверяем, что коллекция событий не null, если нет совпадения по фильтру
+            result.ResponseEventDtos.Should().NotBeNull();
+            // Проверяем, что коллекция событий пустая, если нет совпадения по фильтру
+            result.ResponseEventDtos.Should().BeEmpty();
+        }
+
+        [Fact]
         public void GetEventById_ShouldReturn_Event_From_Colletion_ById()
         {
             // Arrange (подготовка)
@@ -102,9 +130,9 @@ namespace EventManagementService.Tests
             var result = service.GetEventById(1);
 
             // Assert (проверка)
-            //Проверяем что событие существует
+            //Проверяем, что событие существует
             result.Should().NotBeNull();
-            //Проверяем что событие имеет правильный Id
+            //Проверяем, что событие имеет правильный Id
             result.Id.Should().Be(1);
         }
 
@@ -132,7 +160,8 @@ namespace EventManagementService.Tests
             // Act (действие)
             service.ChangeEvent(1, requestEventDto);
 
-            // Assert (проверка) - проверяем, что у события по указанному Id были обновлены свойства
+            // Assert (проверка)
+            // Проверяем, что у события по указанному Id были обновлены свойства
             var updatedEvent = events.Single(e => e.Id == 1);
 
             updatedEvent.Title.Should().Be(requestEventDto.Title);
@@ -189,7 +218,7 @@ namespace EventManagementService.Tests
             var result = service.GetEvents(filter);
 
             // Assert (проверка)
-            // Проверяем что в коллекции содержаться только события после фильтрации по Title
+            // Проверяем, что в коллекции содержаться только события после фильтрации по Title
             result.ResponseEventDtos.Should().OnlyContain(e => e.Title.Contains(title, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -219,7 +248,7 @@ namespace EventManagementService.Tests
             var result = service.GetEvents(filter);
 
             // Assert (проверка)
-            // Проверяем что в коллекции содержаться только события после фильтрации по StartAt и EndAt
+            // Проверяем, что в коллекции содержаться только события после фильтрации по StartAt и EndAt
             result.ResponseEventDtos.Should().OnlyContain(e => e.StartAt >= fromDate && e.EndAt <= toDate);
         }
 
@@ -249,7 +278,7 @@ namespace EventManagementService.Tests
             var result = service.GetEvents(filter);
 
             // Assert (проверка)
-            // Проверяем что количество элементов соответствует количеству элементов на странице после пагинации
+            // Проверяем, что количество элементов соответствует количеству элементов на странице после пагинации
             result.ResponseEventDtos.Should().HaveCount(pageSize);
             // Проверяем каждый элемент по Id
             result.ResponseEventDtos.Select(e => e.Id).Should().Equal(3, 4);
@@ -287,15 +316,43 @@ namespace EventManagementService.Tests
             var result = service.GetEvents(filter);
 
             // Assert (проверка)
-            // Проверяем что есть события в коллекции после фильтрации и пагинации
+            // Проверяем, что есть события в коллекции после фильтрации и пагинации
             result.ResponseEventDtos.Any().Should().BeTrue();
             // Проверяем что Id событий верный
             result.ResponseEventDtos.Select(e => e.Id).Should().Equal(4);
-            // Проверяем что в коллекции содержаться только события после фильтрации
+            // Проверяем, что в коллекции содержаться только события после фильтрации
             result.ResponseEventDtos
                 .Should().OnlyContain(e => e.Title.Contains(title, StringComparison.OrdinalIgnoreCase)
                 && e.StartAt >= fromDate
                 && e.EndAt <= toDate);
+        }
+
+        [Fact]
+        public void GetEvents_ShouldReturnLastPage_WithRemainingItem()
+        {
+            // Arrange (подготовка)
+            var events = CreateEvents();
+
+            var mockRepository = new Mock<IEventRepository>();
+            
+            mockRepository
+                .Setup(r => r.Events)
+                .Returns(events);
+
+            var service = new EventService(mockRepository.Object);
+
+            var filer = new EventFilter()
+            {
+                Page = 3,
+                PageSize = 2
+            };
+
+            // Act (действие)
+            var result = service.GetEvents(filer);
+
+            // Assert (проверка)
+            // Проверяем, что на последней странице содержится только одно событие с требуемым Id
+            result.ResponseEventDtos.Should().ContainSingle(e => e.Id == 5);
         }
 
         #endregion
@@ -316,7 +373,7 @@ namespace EventManagementService.Tests
             var service = new EventService(mockRepository.Object);
 
             // Assert (проверка)
-            // Проверяем что выбрасывается ожидаемое исключение NotFoundException
+            // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
             service.Invoking(s => s.GetEventById(10))
                 .Should()
                 .Throw<NotFoundException>();
@@ -344,14 +401,14 @@ namespace EventManagementService.Tests
             };
 
             // Assert(проверка)
-            // Проверяем что выбрасывается ожидаемое исключение NotFoundException
+            // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
             service.Invoking(s => s.ChangeEvent(10, requestEventDto))
                 .Should()
                 .Throw<NotFoundException>();
         }
 
         [Fact]
-        public void AddEvent_WithIncorrectData_ShouldThrow_BadRequestException()
+        public void AddEvent_WithIncorrectData_Title_ShouldThrow_BadRequestException()
         {
             var events = CreateEvents();
             var mockRepository = new Mock<IEventRepository>();
@@ -364,14 +421,15 @@ namespace EventManagementService.Tests
 
             var requestEventDto = new RequestEventDto
             {
-                Title = "NewTitle",
+                Title = string.Empty,
                 Description = "NewDescription",
                 StartAt = new DateTime(2026, 3, 25),
                 EndAt = new DateTime(2026, 3, 24),
             };
 
             // Assert(проверка)
-            // Проверяем что выбрасывается ожидаемое исключение BadRequestException
+            // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
+            // с некорректными входными данными по свойству Title
             service.Invoking(s => s.AddEvent(requestEventDto))
                 .Should()
                 .Throw<BadRequestException>();
@@ -399,7 +457,8 @@ namespace EventManagementService.Tests
             };
 
             // Assert(проверка)
-            // Проверяем что выбрасывается ожидаемое исключение BadRequestException
+            // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
+            // с датой окончания события раньше даты начала события
             service.Invoking(s => s.ChangeEvent(1, requestEventDto))
                 .Should()
                 .Throw<BadRequestException>();
