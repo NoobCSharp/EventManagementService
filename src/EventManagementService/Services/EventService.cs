@@ -1,5 +1,6 @@
 ﻿using EventManagementService.Dtos;
 using EventManagementService.Exceptions;
+using EventManagementService.Fiters;
 using EventManagementService.Mappers;
 using EventManagementService.Models;
 using EventManagementService.Repositories;
@@ -15,36 +16,36 @@ namespace EventManagementService.Services
             _eventRepository = eventRepository;
         }
 
-        public PaginatedResultDto GetEvents(string? title, DateTime? from, DateTime? to, int page, int pageSize)
+        public PaginatedResultDto GetEvents(EventFilter eventFilter)
         {
-            var filtered = _eventRepository.Events.AsQueryable();
+            var events = _eventRepository.Events.AsQueryable();
 
             //TODO Лучше вынести в отдельный класс фильтра EventFilter
             //Коллекция событий после фильтрации
-            filtered = filtered.Where(e =>
-                (string.IsNullOrWhiteSpace(title) || e.Title.Contains(title, StringComparison.OrdinalIgnoreCase)) &&
-                (!from.HasValue || e.StartAt >= from) &&
-                (!to.HasValue || e.EndAt <= to)
+            var filtered = events.Where(e =>
+                (string.IsNullOrWhiteSpace(eventFilter.Title) || e.Title.Contains(eventFilter.Title, StringComparison.OrdinalIgnoreCase)) &&
+                (!eventFilter.From.HasValue || e.StartAt >= eventFilter.From) &&
+                (!eventFilter.To.HasValue || e.EndAt <= eventFilter.To)
             );
 
             //Количество элементов после фильтрации
             int eventCount = filtered.Count();
 
             //Коллекция событий после пагинации
-            filtered = filtered.Skip((page - 1) * pageSize)
-                .Take(pageSize);
+            var eventsOnPage = filtered.Skip((eventFilter.Page - 1) * eventFilter.PageSize)
+                .Take(eventFilter.PageSize);
 
-            //Количество элементов после фильтрации
-            int filteredCount = filtered.Count();
+            //Количество элементов после пагинации
+            int eventsOnPageCount = eventsOnPage.Count();
 
-            var responseEventDtos = filtered.Select(EventMapper.EventToResponse);
+            var responseEventDtos = eventsOnPage.Select(EventMapper.EventToResponse);
 
             return new PaginatedResultDto()
             {
                 TotalEventsCount = eventCount,
                 ResponseEventDtos = responseEventDtos,
-                NumberEventsOnCurrentPage = filtered.Count(),
-                CurrentPage = page,
+                NumberEventsOnCurrentPage = eventsOnPageCount,
+                CurrentPage = eventFilter.Page,
             };
         }
 
@@ -64,9 +65,15 @@ namespace EventManagementService.Services
 
         public ResponseEventDto AddEvent(RequestEventDto requestEventDto)
         {
+            if (requestEventDto.EndAt <= requestEventDto.StartAt)
+                throw new ArgumentException("Дата окончания события не может быть раньше даты начала события!");
+
+            //Подумать почему метод GetAvailableId в тесте возвращает 0 если не настраивать Mock
+            int id = _eventRepository.GetAvailableId();
+
             Event @event = new()
             {
-                Id = _eventRepository.Events.Any() ? _eventRepository.Events.Max(e => e.Id) + 1 : 1,
+                Id = id,
                 Title = requestEventDto.Title,
                 Description = requestEventDto.Description,
                 StartAt = requestEventDto.StartAt,
@@ -80,6 +87,9 @@ namespace EventManagementService.Services
 
         public void ChangeEvent(int id, RequestEventDto requestEventDto)
         {
+            if (requestEventDto.EndAt <= requestEventDto.StartAt)
+                throw new ArgumentException("Дата окончания события не может быть раньше даты начала события!");
+
             Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.Id == id)!;
 
             if (existingEvent != null)

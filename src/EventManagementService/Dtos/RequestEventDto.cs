@@ -11,7 +11,7 @@ namespace EventManagementService.Dtos
         /// Название события.
         /// </summary>
         [Required(ErrorMessage = "Название события обязательно")]
-        public string Title { get; init; } = string.Empty;
+        required public string Title { get; init; } = string.Empty;
 
         /// <summary>
         /// Описание события.
@@ -22,13 +22,13 @@ namespace EventManagementService.Dtos
         /// Дата начала события.
         /// </summary>
         [Required]
-        public DateTime? StartAt { get; init; }
+        public required DateTime StartAt { get; init; }
 
         /// <summary>
         /// Дата окончания события.
         /// </summary>
         [Required]
-        public DateTime? EndAt { get; init; }
+        public required DateTime EndAt { get; init; }
 
         /// <summary>
         /// Метод проверяет, что дата окончания EndAt больше даты начала StartAt.

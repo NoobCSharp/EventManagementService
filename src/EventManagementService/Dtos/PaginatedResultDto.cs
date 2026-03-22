@@ -13,7 +13,7 @@
         /// <summary>
         /// Коллекция событий после фильтрации и пагинации
         /// </summary>
-        public IEnumerable<ResponseEventDto>? ResponseEventDtos { get; init; } = [];
+        public IEnumerable<ResponseEventDto> ResponseEventDtos { get; init; } = [];
 
         /// <summary>
         /// Номер текущей страницы

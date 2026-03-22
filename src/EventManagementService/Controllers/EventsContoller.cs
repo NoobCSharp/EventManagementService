@@ -1,4 +1,5 @@
 ﻿using EventManagementService.Dtos;
+using EventManagementService.Fiters;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,9 +24,9 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <returns>Объект PaginatedResultDto сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
-        public ActionResult<PaginatedResultDto> GetAllEvents([FromQuery] string? title, [FromQuery] DateTime? from, [FromQuery] DateTime? to, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public ActionResult<PaginatedResultDto> GetAllEvents([FromQuery] EventFilter eventFilter)
         {
-            PaginatedResultDto paginatedResult = _eventService.GetEvents(title, from, to, page, pageSize);
+            PaginatedResultDto paginatedResult = _eventService.GetEvents(eventFilter);
             return Ok(paginatedResult);
         }
 

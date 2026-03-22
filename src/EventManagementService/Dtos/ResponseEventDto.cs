@@ -13,7 +13,7 @@
         /// <summary>
         /// Название события.
         /// </summary>
-        public string? Title { get; init; }
+        public string Title { get; init; } = string.Empty;
 
         /// <summary>
         /// Описание события.
@@ -23,11 +23,11 @@
         /// <summary>
         /// Дата начала события.
         /// </summary>
-        public DateTime? StartAt { get; init; }
+        public DateTime StartAt { get; init; }
 
         /// <summary>
         /// Дата окончания события.
         /// </summary>
-        public DateTime? EndAt { get; init; }
+        public DateTime EndAt { get; init; }
     }
 }

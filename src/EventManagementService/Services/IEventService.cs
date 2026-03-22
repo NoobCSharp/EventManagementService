@@ -1,4 +1,5 @@
 ﻿using EventManagementService.Dtos;
+using EventManagementService.Fiters;
 
 namespace EventManagementService.Services
 {
@@ -7,11 +8,13 @@ namespace EventManagementService.Services
         /// <summary>
         /// Получает коллекцию отфильтрованных событий.
         /// </summary>
+        /// <param name="eventFilter">Фильтр событий</param>
         /// <returns>
         /// Коллекция отфильтрованных событий.
         /// Если события отсутствуют, возвращается пустая коллекция.
         /// </returns>
-        PaginatedResultDto GetEvents(string? title, DateTime? from, DateTime? to, int page, int pageSize);
+
+        PaginatedResultDto GetEvents(EventFilter eventFilter);
 
         /// <summary>
         /// Получает событие по Id.
