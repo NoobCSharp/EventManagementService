@@ -1,14 +1,14 @@
-﻿namespace EventManagementService.Dtos
+﻿namespace EventManagementService.Dtos.EventDtos
 {
     /// <summary>
     /// DTO событие для ответов
     /// </summary>
-    public record ResponseEventDto
+    public record EventDtoResponse
     {
         /// <summary>
         /// Уникальный идентификатор события.
         /// </summary>
-        public int Id { get; init; }
+        public Guid EventId { get; init; }
 
         /// <summary>
         /// Название события.

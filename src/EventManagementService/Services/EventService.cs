@@ -1,22 +1,22 @@
-﻿using EventManagementService.Dtos;
+﻿using EventManagementService.Dtos.EventDtos;
 using EventManagementService.Exceptions;
 using EventManagementService.Filters;
 using EventManagementService.Mappers;
 using EventManagementService.Models;
-using EventManagementService.Repositories;
+using EventManagementService.Stores;
 
 namespace EventManagementService.Services
 {
     public class EventService : IEventService
     {
-        private readonly IEventRepository _eventRepository;
+        private readonly IEventStore _eventRepository;
 
-        public EventService(IEventRepository eventRepository)
+        public EventService(IEventStore eventRepository)
         {
             _eventRepository = eventRepository;
         }
 
-        public PaginatedResultDto GetEvents(EventFilter eventFilter)
+        public EventDtoPaginatedResponse GetEvents(EventFilter eventFilter)
         {
             var events = _eventRepository.Events.AsQueryable();
 
@@ -40,7 +40,7 @@ namespace EventManagementService.Services
 
             var responseEventDtos = eventsOnPage.Select(EventMapper.EventToResponse);
 
-            return new PaginatedResultDto()
+            return new EventDtoPaginatedResponse()
             {
                 TotalEventsCount = eventCount,
                 ResponseEventDtos = responseEventDtos,
@@ -49,21 +49,17 @@ namespace EventManagementService.Services
             };
         }
 
-        public ResponseEventDto GetEventById(int id)
+        public EventDtoResponse GetEventById(Guid id)
         {
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.Id == id)!;
+            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EvendId == id)!;
 
-            if (existingEvent != null)
-            {
-                return EventMapper.EventToResponse(existingEvent);
-            }
-            else
-            {
+            if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
-            }
+
+            return EventMapper.EventToResponse(existingEvent);
         }
 
-        public ResponseEventDto AddEvent(RequestEventDto requestEventDto)
+        public EventDtoResponse AddEvent(EventDtoRequest requestEventDto)
         {
             if (string.IsNullOrWhiteSpace(requestEventDto.Title))
                 throw new BadRequestException("Название события обязательно к заполнению!");
@@ -71,12 +67,9 @@ namespace EventManagementService.Services
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
-            //Подумать почему метод GetAvailableId в тесте возвращает 0 если не настраивать Mock
-            int id = _eventRepository.GetAvailableId();
-
             Event @event = new()
             {
-                Id = id,
+                EvendId = Guid.NewGuid(),
                 Title = requestEventDto.Title,
                 Description = requestEventDto.Description,
                 StartAt = requestEventDto.StartAt,
@@ -88,38 +81,30 @@ namespace EventManagementService.Services
             return EventMapper.EventToResponse(@event);
         }
 
-        public void ChangeEvent(int id, RequestEventDto requestEventDto)
+        public void ChangeEvent(Guid id, EventDtoRequest requestEventDto)
         {
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.Id == id)!;
+            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EvendId == id)!;
 
-            if (existingEvent != null)
-            {
-                existingEvent.Title = requestEventDto.Title;
-                existingEvent.Description = requestEventDto.Description;
-                existingEvent.StartAt = requestEventDto.StartAt;
-                existingEvent.EndAt = requestEventDto.EndAt;
-            }
-            else
-            {
+            if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
-            }
+
+            existingEvent.Title = requestEventDto.Title;
+            existingEvent.Description = requestEventDto.Description;
+            existingEvent.StartAt = requestEventDto.StartAt;
+            existingEvent.EndAt = requestEventDto.EndAt;
         }
 
-        public void RemoveEvent(int id)
+        public void RemoveEvent(Guid id)
         { 
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.Id == id)!;
+            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EvendId == id)!;
 
-            if (existingEvent != null)
-            {
-                _eventRepository.Events.Remove(existingEvent);
-            }
-            else
-            {
+            if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
-            }
+            
+            _eventRepository.Events.Remove(existingEvent);
         }
     }
 }

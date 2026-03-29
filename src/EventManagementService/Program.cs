@@ -1,6 +1,7 @@
 ﻿using EventManagementService.Middlewares.ExceptionMiddleware;
-using EventManagementService.Repositories;
 using EventManagementService.Services;
+using EventManagementService.Stores;
+using System.Text.Json.Serialization;
 
 namespace EventManagementService
 {
@@ -14,11 +15,21 @@ namespace EventManagementService
             builder.Services.AddSwaggerGen();
             builder.Services.AddControllers();
 
-            builder.Services.AddSingleton<IEventRepository, EventRepository>();
+            builder.Services.AddSingleton<IEventStore, EventStore>();
+            builder.Services.AddSingleton<IBookingStore, BookingStore>();
+
             builder.Services.AddScoped<IEventService, EventService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
+
+            // Конвертер enum для вывода читабельного статуса
+            builder.Services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters
+                .Add(new JsonStringEnumConverter());
+            });
 
             var app = builder.Build();
 
@@ -31,6 +42,12 @@ namespace EventManagementService
                 app.MapOpenApi();
                 app.UseSwagger();
                 app.UseSwaggerUI();
+
+                builder.Host.UseDefaultServiceProvider(options =>
+                {
+                    options.ValidateScopes = true;
+                    options.ValidateOnBuild = true;
+                });
             }
 
             app.UseHttpsRedirection();

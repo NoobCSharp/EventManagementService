@@ -1,4 +1,5 @@
-﻿using EventManagementService.Dtos;
+﻿using EventManagementService.Dtos.BookingDtos;
+using EventManagementService.Dtos.EventDtos;
 using EventManagementService.Filters;
 using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +13,9 @@ namespace EventManagementService.Controllers
     [Route("events")]
     public class EventsController : ControllerBase
     {
-        private  readonly IEventService _eventService;
-
-        public EventsController(IEventService eventService)
+        private readonly IEventService _eventService;
+        
+        public EventsController(IEventService eventService, IBookingService bookingService)
         {
             _eventService = eventService;
         }
@@ -24,21 +25,21 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <returns>Объект PaginatedResultDto сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
-        public ActionResult<PaginatedResultDto> GetAllEvents([FromQuery] EventFilter eventFilter)
+        public ActionResult<EventDtoPaginatedResponse> GetAllEvents([FromQuery] EventFilter eventFilter)
         {
-            PaginatedResultDto paginatedResult = _eventService.GetEvents(eventFilter);
+            var paginatedResult = _eventService.GetEvents(eventFilter);
             return Ok(paginatedResult);
         }
 
         /// <summary>
-        /// Метод возвращает объект события по Id из списка.
+        /// Метод возвращает объект события по Id из коллекции.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <returns>Объект ResponseEventDto.</returns>
         [HttpGet("{id}")]
-        public ActionResult<ResponseEventDto> GetEventById(int id)
+        public ActionResult<EventDtoResponse> GetEventById(Guid id)
         {
-            ResponseEventDto responseEventDto = _eventService.GetEventById(id);
+            var responseEventDto = _eventService.GetEventById(id);
             return Ok(responseEventDto);
         }
 
@@ -49,14 +50,14 @@ namespace EventManagementService.Controllers
         /// <returns>Возвращает новый объект ResponseEventDto созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
-        public ActionResult<ResponseEventDto> AddEvent([FromBody] RequestEventDto requestEventDto)
+        public ActionResult<EventDtoResponse> AddEvent([FromBody] EventDtoRequest requestEventDto)
         {          
-            ResponseEventDto ResponseEventDto = _eventService.AddEvent(requestEventDto);
+            var responseEventDto = _eventService.AddEvent(requestEventDto);
 
             return CreatedAtAction(
                 nameof(GetEventById),
-                new { id = ResponseEventDto.Id },
-                ResponseEventDto);
+                new { id = responseEventDto.EventId },
+                responseEventDto);
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <param name="requestEventDto">Объект RequestEventDto с новыми данными для обновления.</param>
         [HttpPut("{id}")]
-        public ActionResult ChangeEvent(int id, [FromBody] RequestEventDto requestEventDto)
+        public ActionResult ChangeEvent(Guid id, [FromBody] EventDtoRequest requestEventDto)
         {
             _eventService.ChangeEvent(id, requestEventDto);
             return NoContent();
@@ -76,7 +77,7 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
         [HttpDelete("{id}")]
-        public IActionResult DeleteEvent(int id)
+        public IActionResult DeleteEvent(Guid id)
         {
             _eventService.RemoveEvent(id);
             return NoContent();
