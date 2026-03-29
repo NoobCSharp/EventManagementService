@@ -13,8 +13,7 @@ namespace EventManagementService.Services
         /// Коллекция отфильтрованных событий.
         /// Если события отсутствуют, возвращается пустая коллекция.
         /// </returns>
-
-        EventDtoPaginatedResponse GetEvents(EventFilter eventFilter);
+        Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter);
 
         /// <summary>
         /// Получает событие по Id.
@@ -26,7 +25,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект события с указанным Id.
         /// </returns>
-        EventDtoResponse GetEventById(Guid id);
+        Task<EventDtoResponse> GetEventByIdAsync(Guid id);
 
         /// <summary>
         /// Добавляет событие в коллекцию событий.
@@ -37,7 +36,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект нового события.
         /// </returns>
-        EventDtoResponse AddEvent(EventDtoRequest requestEventDto);
+        Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto);
 
         /// <summary>
         /// Вносит изменение в существующее событие.
@@ -49,7 +48,7 @@ namespace EventManagementService.Services
         /// <param name="requestEventDto">
         /// Объект события с новыми данными.
         /// </param>
-        void ChangeEvent(Guid id, EventDtoRequest requestEventDto);
+        Task ChangeEvent(Guid id, EventDtoRequest requestEventDto);
 
         /// <summary>
         /// Удаляет событие по Id из коллекции событий.
@@ -58,6 +57,6 @@ namespace EventManagementService.Services
         /// <param name="id">
         /// Уникальный идентификатор события.
         /// </param>
-        void RemoveEvent(Guid id);
+        Task RemoveEventAsync(Guid id);
     }
 }

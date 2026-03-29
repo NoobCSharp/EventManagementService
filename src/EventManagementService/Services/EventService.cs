@@ -16,7 +16,7 @@ namespace EventManagementService.Services
             _eventRepository = eventRepository;
         }
 
-        public EventDtoPaginatedResponse GetEvents(EventFilter eventFilter)
+        public Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter)
         {
             var events = _eventRepository.Events.AsQueryable();
 
@@ -40,26 +40,30 @@ namespace EventManagementService.Services
 
             var responseEventDtos = eventsOnPage.Select(EventMapper.EventToResponse);
 
-            return new EventDtoPaginatedResponse()
+            var eventDtoPaginatedResponse = new EventDtoPaginatedResponse()
             {
                 TotalEventsCount = eventCount,
                 ResponseEventDtos = responseEventDtos,
                 NumberEventsOnCurrentPage = eventsOnPageCount,
                 CurrentPage = eventFilter.Page,
             };
+
+            return Task.FromResult(eventDtoPaginatedResponse);
         }
 
-        public EventDtoResponse GetEventById(Guid id)
+        public Task<EventDtoResponse> GetEventByIdAsync(Guid id)
         {
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EvendId == id)!;
+            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EventId == id)!;
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
 
-            return EventMapper.EventToResponse(existingEvent);
+            var eventDtoResponse = EventMapper.EventToResponse(existingEvent);
+
+            return Task.FromResult(eventDtoResponse);
         }
 
-        public EventDtoResponse AddEvent(EventDtoRequest requestEventDto)
+        public Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto)
         {
             if (string.IsNullOrWhiteSpace(requestEventDto.Title))
                 throw new BadRequestException("Название события обязательно к заполнению!");
@@ -69,7 +73,7 @@ namespace EventManagementService.Services
 
             Event @event = new()
             {
-                EvendId = Guid.NewGuid(),
+                EventId = Guid.NewGuid(),
                 Title = requestEventDto.Title,
                 Description = requestEventDto.Description,
                 StartAt = requestEventDto.StartAt,
@@ -78,15 +82,18 @@ namespace EventManagementService.Services
 
             _eventRepository.Events.Add(@event);
 
-            return EventMapper.EventToResponse(@event);
+            var eventDtoResponse =  EventMapper.EventToResponse(@event);
+
+            return Task.FromResult(eventDtoResponse);
         }
 
-        public void ChangeEvent(Guid id, EventDtoRequest requestEventDto)
+        public Task ChangeEvent(Guid id, EventDtoRequest requestEventDto)
         {
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EvendId == id)!;
+            var existingEvent = _eventRepository.Events
+                .FirstOrDefault(e => e.EventId == id);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
@@ -95,16 +102,20 @@ namespace EventManagementService.Services
             existingEvent.Description = requestEventDto.Description;
             existingEvent.StartAt = requestEventDto.StartAt;
             existingEvent.EndAt = requestEventDto.EndAt;
+
+            return Task.CompletedTask;
         }
 
-        public void RemoveEvent(Guid id)
+        public Task RemoveEventAsync(Guid id)
         { 
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EvendId == id)!;
+            var existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EventId == id);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
             
             _eventRepository.Events.Remove(existingEvent);
+
+            return Task.CompletedTask;
         }
     }
 }

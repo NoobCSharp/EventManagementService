@@ -38,7 +38,7 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор брони.</param>
         /// <returns>Объект BookingDtoResponse.</returns>
         [HttpGet("/bookings/{id}")]
-        public async Task<ActionResult<BookingDtoResponse>> GetBookingById(Guid id)
+        public async Task<ActionResult> GetBookingById(Guid id)
         {
             var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id);
             return Ok(bookingDtoResponse);

@@ -9,7 +9,7 @@ namespace EventManagementService.Mappers
         {
             return new EventDtoResponse
             {
-                EventId = @event.EvendId,
+                EventId = @event.EventId,
                 Title = @event.Title,
                 Description = @event.Description,
                 StartAt = @event.StartAt,

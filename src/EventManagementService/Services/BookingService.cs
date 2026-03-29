@@ -31,7 +31,7 @@ namespace EventManagementService.Services
         public Task<BookingDtoResponse> CreateBookingAsync(Guid eventId)
         {
             var existingEvent = _eventStore.Events
-                .FirstOrDefault(e => e.EvendId == eventId);
+                .FirstOrDefault(e => e.EventId == eventId);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");

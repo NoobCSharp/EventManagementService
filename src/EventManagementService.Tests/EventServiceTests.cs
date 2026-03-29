@@ -13,7 +13,7 @@ namespace EventManagementService.Tests
         #region Successful scenarios for EventService
 
         [Fact]
-        public void AddEvent_ShouldAddEvent_To_Collection()
+        public async Task AddEvent_ShouldAddEvent_To_Collection()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -26,7 +26,7 @@ namespace EventManagementService.Tests
             var service = new EventService(mockEventStore.Object);
 
             // Act (действие)
-            var result = service.AddEvent(
+            var result = await service.AddEventAsync(
                 new EventDtoRequest()
                 {
                     Title = "Test",
@@ -38,7 +38,7 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что в коллекцию добавлено событие, проверяем по уникальному Id
-            var addedEvent = mockEventStore.Object.Events.Single(e => e.EvendId == result.EventId);
+            var addedEvent = mockEventStore.Object.Events.Single(e => e.EventId == result.EventId);
             //Проверяем, что у добавленного соития совпадает Title
             addedEvent.Title.Should().Be("Test");
             //Проверяем, что у добавленного события совпадает Description
@@ -47,7 +47,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_AllEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_AllEvents_From_Colletion()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -61,7 +61,7 @@ namespace EventManagementService.Tests
             var filter = new EventFilter();
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что метод GetEvents возвращает PaginatedResultDto
@@ -70,7 +70,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
+        public async Task GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
         {
             // Arrange (подготовка)
             
@@ -89,7 +89,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что коллекция событий не null, если нет совпадения по фильтру
@@ -99,7 +99,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEventById_ShouldReturn_Event_From_Colletion_ById()
+        public async Task GetEventById_ShouldReturn_Event_From_Colletion_ById()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -112,7 +112,7 @@ namespace EventManagementService.Tests
             var service = new EventService(mockEventStore.Object);
 
             // Act (действие)
-            var result = service.GetEventById(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var result = await service.GetEventByIdAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
 
             // Assert (проверка)
             //Проверяем, что событие существует
@@ -122,7 +122,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void ChangeEvent_ShouldUpdate_Event_In_Collection()
+        public async Task ChangeEvent_ShouldUpdate_Event_In_Collection()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper. CreateEvents();
@@ -143,11 +143,11 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            service.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest);
+            await service.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest);
 
             // Assert (проверка)
             // Проверяем, что у события по указанному Id были обновлены свойства
-            var updatedEvent = events.Single(e => e.EvendId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var updatedEvent = events.Single(e => e.EventId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
 
             updatedEvent.Title.Should().Be(eventDtoRequest.Title);
             updatedEvent.Description.Should().Be(eventDtoRequest.Description);
@@ -156,7 +156,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void RemoveEvent_ShouldRemove_Event_From_Collection()
+        public async Task RemoveEvent_ShouldRemove_Event_From_Collection()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -169,8 +169,8 @@ namespace EventManagementService.Tests
             var service = new EventService(mockEventStore.Object);
 
             // Act (действие)
-            service.RemoveEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
-            var removedEvent = events.FirstOrDefault(e => e.EvendId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            await service.RemoveEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var removedEvent = events.FirstOrDefault(e => e.EventId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
 
             // Assert (проверка)
             // Проверяем, что событие больше не существует
@@ -180,7 +180,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_Colletion()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -200,7 +200,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что в коллекции содержаться только события после фильтрации по Title
@@ -208,7 +208,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_FilteredEvents_ByDate_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredEvents_ByDate_From_Colletion()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -230,7 +230,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что в коллекции содержаться только события после фильтрации по StartAt и EndAt
@@ -238,7 +238,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_PaginatedEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_PaginatedEvents_From_Colletion()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -260,7 +260,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что количество элементов соответствует количеству элементов на странице после пагинации
@@ -270,7 +270,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_Colletion()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -298,7 +298,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что есть события в коллекции после фильтрации и пагинации
@@ -313,7 +313,7 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturnLastPage_WithRemainingItem()
+        public async Task GetEvents_ShouldReturnLastPage_WithRemainingItem()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -332,7 +332,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filer);
+            var result = await service.GetEventsAsync(filer);
 
             // Assert (проверка)
             // Проверяем, что на последней странице содержится только одно событие с требуемым Id
@@ -344,7 +344,7 @@ namespace EventManagementService.Tests
         #region Unsuccessful scenarios for EventService
 
         [Fact]
-        public void GetEventById_WithNonExistingId_ShouldThrow_NotFoundException()
+        public async Task GetEventById_WithNonExistingId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
@@ -358,9 +358,9 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            service.Invoking(s => s.GetEventById(new Guid()))
+            await service.Invoking(s => s.GetEventByIdAsync(new Guid()))
                 .Should()
-                .Throw<NotFoundException>();
+                .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
@@ -388,7 +388,7 @@ namespace EventManagementService.Tests
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
             service.Invoking(s => s.ChangeEvent(new Guid(), eventDtoRequest))
                 .Should()
-                .Throw<NotFoundException>();
+                .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
@@ -414,9 +414,9 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с некорректными входными данными по свойству Title
-            service.Invoking(s => s.AddEvent(eventDtoRequest))
+            service.Invoking(s => s.AddEventAsync(eventDtoRequest))
                 .Should()
-                .Throw<BadRequestException>();
+                .ThrowAsync<BadRequestException>();
         }
 
         [Fact]
@@ -445,7 +445,7 @@ namespace EventManagementService.Tests
             // с датой окончания события раньше даты начала события
             service.Invoking(s => s.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest))
                 .Should()
-                .Throw<BadRequestException>();
+                .ThrowAsync<BadRequestException>();
         }
 
         #endregion
