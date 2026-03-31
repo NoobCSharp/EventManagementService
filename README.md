@@ -75,7 +75,7 @@ Enum BookingStatus:
  2. Внутри создаётся scope, откуда получается IBookingStore
  3. Из BookingStore выбираются брони с Status == Pending и ProcessedAt == null
  4. Для каждой найденной брони выполняется имитация внешней обработки (в тестовой/демо-реализации — Task.Delay(...)), затем:
-     - `Status` устанавливается в Confirmed
+     - `Status` устанавливается в `Confirmed`, статус `Rejected` в текущей реализации не используется, зарезервирован для будущей логики
      - `ProcessedAt` устанавливается в DateTime.UtcNow
  5. Исключения логируются
 

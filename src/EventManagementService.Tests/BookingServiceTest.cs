@@ -25,13 +25,8 @@ namespace EventManagementService.Tests
             var mockEventStore = new Mock<IEventStore>();
             var mockBookingStore = new Mock<IBookingStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
-
-            mockBookingStore
-                .Setup(b => b.Bookings)
-                .Returns(bookings);
+            mockEventStore.Setup(e => e.Events).Returns(events);
+            mockBookingStore.Setup(b => b.Bookings).Returns(bookings);
 
             var service = new BookingService(mockEventStore.Object, mockBookingStore.Object);
 
@@ -99,7 +94,6 @@ namespace EventManagementService.Tests
             var mockBookingStore = new Mock<IBookingStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
-
             mockBookingStore.Setup(b => b.Bookings).Returns(bookings);
 
             var service = new BookingService(mockEventStore.Object, mockBookingStore.Object);
@@ -129,6 +123,7 @@ namespace EventManagementService.Tests
             };
 
             var bookingStoreMock = new Mock<IBookingStore>();
+
             bookingStoreMock.Setup(s => s.Bookings).Returns(bookings);
 
             var services = new ServiceCollection();
@@ -162,19 +157,36 @@ namespace EventManagementService.Tests
             var mockEventStore = new Mock<IEventStore>();
             var mockBookingStore = new Mock<IBookingStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
-
-            mockBookingStore
-                .Setup(b => b.Bookings)
-                .Returns(bookings);
+            mockEventStore.Setup(e => e.Events).Returns(events);
+            mockBookingStore.Setup(b => b.Bookings).Returns(bookings);
 
             var service = new BookingService(mockEventStore.Object, mockBookingStore.Object);
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
             await service.Invoking(s => s.GetBookingByIdAsync(Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF")))
+                .Should()
+                .ThrowAsync<NotFoundException>();
+        }
+
+        [Fact]
+        public async Task AddBooking_WithNonExistingOrRemovedEvent_ShouldThrow_NotFoundException()
+        {
+            // Arrange (подготовка)
+            var events = ServicesTestHelper.CreateEvents();
+            var bookings = ServicesTestHelper.CreateBookings();
+
+            var mockEventStore = new Mock<IEventStore>();
+            var mockBookingStore = new Mock<IBookingStore>();
+
+            mockEventStore.Setup(e => e.Events).Returns(events);
+            mockBookingStore.Setup(b => b.Bookings).Returns(bookings);
+
+            var service = new BookingService(mockEventStore.Object, mockBookingStore.Object);
+
+            // Assert (проверка)
+            // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
+            await service.Invoking(s => s.CreateBookingAsync(Guid.Parse("EAD0E512-87E4-4825-98CF-8331D34C114F")))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }

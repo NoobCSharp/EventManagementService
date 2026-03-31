@@ -11,7 +11,9 @@ namespace EventManagementService.Mappers
             {
                 BookingId = booking.BookingId,
                 EventId = booking.EventId,
-                Status = booking.Status
+                Status = booking.Status,
+                CreatedAt = booking.CreatedAt,
+                ProcessedAt = booking.ProcessedAt,
             };
         }
     }

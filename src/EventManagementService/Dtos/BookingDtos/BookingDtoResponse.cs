@@ -18,5 +18,15 @@ namespace EventManagementService.Dtos.BookingDtos
         /// Текущий статус брони
         /// </summary>
         public BookingStatus Status { get; init; }
+
+        /// <summary>
+        /// Дата и время создания брони
+        /// </summary>
+        public DateTime CreatedAt { get; init; }
+
+        /// <summary>
+        /// Дата и время обработки
+        /// </summary>
+        public DateTime? ProcessedAt { get; init; }
     }
 }

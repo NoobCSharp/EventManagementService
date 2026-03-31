@@ -1,11 +1,9 @@
-﻿using EventManagementService.Dtos.BookingDtos;
-using EventManagementService.Services;
+﻿using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
 {
     [ApiController]
-    [Route("events")]
     public class BookingController : ControllerBase
     {
         private readonly IBookingService _bookingService;
@@ -21,7 +19,7 @@ namespace EventManagementService.Controllers
         /// <param name="id">Id события для добавления брони.</param>
         /// <returns>Возвращает новый объект BookingDtoResponse созданной брони
         /// и заголовок Location, указывающий на метод получения брони по Id.</returns>
-        [HttpPost("{id}/book")]
+        [HttpPost("events/{id}/book")]
         public async Task<IActionResult> CreateBooking(Guid id)
         {
             var bookingDtoResponse = await _bookingService.CreateBookingAsync(id);
@@ -37,7 +35,7 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор брони.</param>
         /// <returns>Объект BookingDtoResponse.</returns>
-        [HttpGet("/bookings/{id}")]
+        [HttpGet("bookings/{id}")]
         public async Task<ActionResult> GetBookingById(Guid id)
         {
             var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id);

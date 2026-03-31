@@ -19,9 +19,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -53,9 +51,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
             var filter = new EventFilter();
@@ -77,9 +73,7 @@ namespace EventManagementService.Tests
             var mockEventStore = new Mock<IEventStore>();
             var events = ServicesTestHelper.CreateEvents();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
             
@@ -105,9 +99,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -128,9 +120,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper. CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -162,9 +152,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -186,9 +174,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -214,9 +200,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -244,9 +228,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -276,9 +258,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -319,9 +299,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
             
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -350,9 +328,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -370,9 +346,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -397,9 +371,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 
@@ -426,9 +398,7 @@ namespace EventManagementService.Tests
             var events = ServicesTestHelper.CreateEvents();
             var mockEventStore = new Mock<IEventStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
             var service = new EventService(mockEventStore.Object);
 

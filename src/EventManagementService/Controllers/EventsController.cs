@@ -14,7 +14,7 @@ namespace EventManagementService.Controllers
     {
         private readonly IEventService _eventService;
         
-        public EventsController(IEventService eventService, IBookingService bookingService)
+        public EventsController(IEventService eventService)
         {
             _eventService = eventService;
         }
