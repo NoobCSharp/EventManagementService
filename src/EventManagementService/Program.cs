@@ -1,4 +1,5 @@
-﻿using EventManagementService.Middlewares.ExceptionMiddleware;
+﻿using EventManagementService.BackgroundServices;
+using EventManagementService.Middlewares.ExceptionMiddleware;
 using EventManagementService.Services;
 using EventManagementService.Stores;
 using System.Text.Json.Serialization;
@@ -30,6 +31,8 @@ namespace EventManagementService
                 options.JsonSerializerOptions.Converters
                 .Add(new JsonStringEnumConverter());
             });
+
+            builder.Services.AddHostedService<BookingProcessingService>();
 
             var app = builder.Build();
 

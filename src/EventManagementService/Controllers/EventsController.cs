@@ -24,7 +24,7 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <returns>Объект PaginatedResultDto сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
-        public async Task<ActionResult<EventDtoPaginatedResponse>> GetAllEvents([FromQuery] EventFilter eventFilter)
+        public async Task<ActionResult> GetAllEvents([FromQuery] EventFilter eventFilter)
         {
             var paginatedResult = await _eventService.GetEventsAsync(eventFilter);
             return Ok(paginatedResult);
@@ -36,7 +36,7 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <returns>Объект ResponseEventDto.</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<EventDtoResponse>> GetEventById(Guid id)
+        public async Task<ActionResult> GetEventById(Guid id)
         {
             var responseEventDto = await _eventService.GetEventByIdAsync(id);
             return Ok(responseEventDto);
@@ -49,7 +49,7 @@ namespace EventManagementService.Controllers
         /// <returns>Возвращает новый объект ResponseEventDto созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
-        public async Task<ActionResult<EventDtoResponse>> AddEvent([FromBody] EventDtoRequest requestEventDto)
+        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest requestEventDto)
         {          
             var responseEventDto = await _eventService.AddEventAsync(requestEventDto);
 

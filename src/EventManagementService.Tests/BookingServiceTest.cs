@@ -1,9 +1,12 @@
-﻿using EventManagementService.Enums;
+﻿using EventManagementService.BackgroundServices;
+using EventManagementService.Enums;
 using EventManagementService.Exceptions;
 using EventManagementService.Models;
 using EventManagementService.Services;
 using EventManagementService.Stores;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace EventManagementService.Tests
@@ -51,40 +54,36 @@ namespace EventManagementService.Tests
         {
             // Arrange (подготовка)
             var events = ServicesTestHelper.CreateEvents();
-            // Начинаем с пустого списка
-            var bookings = new List<Booking>(); 
+            
+            // Начинаем с пустой коллекции
+            var bookings = new List<Booking>();
 
             var mockEventStore = new Mock<IEventStore>();
             var mockBookingStore = new Mock<IBookingStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
-
-            mockBookingStore
-                .Setup(b => b.Bookings)
-                .Returns(bookings);
+            mockEventStore.Setup(e => e.Events).Returns(events);
+            mockBookingStore.Setup(b => b.Bookings).Returns(bookings);
 
             var service = new BookingService(mockEventStore.Object, mockBookingStore.Object);
 
             var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            var result1 = await service.CreateBookingAsync(eventId);
-            var result2 = await service.CreateBookingAsync(eventId);
+            var bookingFirst = await service.CreateBookingAsync(eventId);
+            var bookingLast = await service.CreateBookingAsync(eventId);
 
             // Assert (проверка)
-            // Проверяем, что добавились только две брони
-            bookings.Should().HaveCount(2);
+            // Проверяем, что добавились только две брони, они имеют статус Pending, и принадлежат одному событию
+            bookings.Should()
+                .HaveCount(2)
+                .And.OnlyContain(b => b.Status == BookingStatus.Pending)
+                .And.OnlyContain(b => b.EventId == eventId);
+            
             // Проверяем, что в коллекцию добавлены брони, проверяем по уникальному Id
-            var addedBooking1 = mockBookingStore.Object.Bookings.Single(e => e.BookingId == result1.BookingId);
-            var addedBooking2 = mockBookingStore.Object.Bookings.Single(e => e.BookingId == result2.BookingId);
-            // Проверяем, что у добавленных броней установлен корректный статус при создании
-            addedBooking1.Status.Should().Be(BookingStatus.Pending);
-            addedBooking2.Status.Should().Be(BookingStatus.Pending);
-            // Проверяем, что у добавленные брони имеют одинаковый Id события 
-            addedBooking1.EventId.Should().Be(eventId);
-            addedBooking2.EventId.Should().Be(eventId);
+            var addedBooking1 = mockBookingStore.Object.Bookings.Single(e => e.BookingId == bookingFirst.BookingId);
+            var addedBooking2 = mockBookingStore.Object.Bookings.Single(e => e.BookingId == bookingLast.BookingId);
+            
+
             // Проверяем, что BookingId уникальны
             addedBooking1.BookingId.Should().NotBe(addedBooking2.BookingId);
         }
@@ -99,13 +98,9 @@ namespace EventManagementService.Tests
             var mockEventStore = new Mock<IEventStore>();
             var mockBookingStore = new Mock<IBookingStore>();
 
-            mockEventStore
-                .Setup(e => e.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            mockBookingStore
-                .Setup(b => b.Bookings)
-                .Returns(bookings);
+            mockBookingStore.Setup(b => b.Bookings).Returns(bookings);
 
             var service = new BookingService(mockEventStore.Object, mockBookingStore.Object);
 
@@ -117,6 +112,40 @@ namespace EventManagementService.Tests
             result.Should().NotBeNull();
             // Проверяем, что бронь имеет правильный Id
             result.BookingId.Should().Be(Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"));
+        }
+
+        [Fact]
+        public async Task GetBookingStatus_ShouldReturnModifiedStatus_After_BookingProcessingService()
+        {
+            // Arrange
+            var bookings = new List<Booking>
+            {
+                new Booking
+                {
+                    BookingId = Guid.NewGuid(),
+                    Status = BookingStatus.Pending,
+                    ProcessedAt = null
+                }
+            };
+
+            var bookingStoreMock = new Mock<IBookingStore>();
+            bookingStoreMock.Setup(s => s.Bookings).Returns(bookings);
+
+            var services = new ServiceCollection();
+            // Регистрируем мок как scoped, чтобы CreateScope() вернул его внутри scope
+            services.AddScoped(_ => bookingStoreMock.Object);
+
+            var provider = services.BuildServiceProvider();
+
+            // Реализация ILogger, которая ничего не логирует (используется в тестах, чтобы не генерировать записи)
+            var svc = new BookingProcessingService(provider, NullLogger<BookingProcessingService>.Instance);
+
+            // Act
+            await svc.ProcessPendingBookingsAsync(CancellationToken.None);
+
+            // Assert
+            bookings.First().Status.Should().Be(BookingStatus.Confirmed);
+            bookings.First().ProcessedAt.Should().NotBeNull();
         }
 
         #endregion
