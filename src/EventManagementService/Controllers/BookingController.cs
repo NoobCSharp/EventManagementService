@@ -1,4 +1,5 @@
-﻿using EventManagementService.Services;
+﻿using EventManagementService.Dtos.BookingDtos;
+using EventManagementService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
@@ -20,13 +21,14 @@ namespace EventManagementService.Controllers
         /// <returns>Возвращает новый объект BookingDtoResponse созданной брони
         /// и заголовок Location, указывающий на метод получения брони по Id.</returns>
         [HttpPost("events/{id}/book")]
+        [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status202Accepted)]
         public async Task<IActionResult> CreateBooking(Guid id)
         {
             var bookingDtoResponse = await _bookingService.CreateBookingAsync(id);
 
             return AcceptedAtAction(
                 nameof(GetBookingById),
-                new { id = bookingDtoResponse.BookingId },
+                new { id = bookingDtoResponse.Id },
                 bookingDtoResponse);
         }
 

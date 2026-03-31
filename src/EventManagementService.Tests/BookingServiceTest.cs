@@ -37,7 +37,7 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что в коллекцию добавлена одна бронь, проверяем по уникальному Id
-            var addedBooking = mockBookingStore.Object.Bookings.Single(e => e.BookingId == result.BookingId);
+            var addedBooking = mockBookingStore.Object.Bookings.Single(e => e.Id == result.Id);
             // Проверяем, что бронь добавлена для события с указанным Id
             addedBooking.EventId.Should().Be(eventId);
             //Проверяем, что у добавленной брони установлен корректный статус при создании
@@ -75,12 +75,12 @@ namespace EventManagementService.Tests
                 .And.OnlyContain(b => b.EventId == eventId);
             
             // Проверяем, что в коллекцию добавлены брони, проверяем по уникальному Id
-            var addedBooking1 = mockBookingStore.Object.Bookings.Single(e => e.BookingId == bookingFirst.BookingId);
-            var addedBooking2 = mockBookingStore.Object.Bookings.Single(e => e.BookingId == bookingLast.BookingId);
+            var addedBooking1 = mockBookingStore.Object.Bookings.Single(e => e.Id == bookingFirst.Id);
+            var addedBooking2 = mockBookingStore.Object.Bookings.Single(e => e.Id == bookingLast.Id);
             
 
             // Проверяем, что BookingId уникальны
-            addedBooking1.BookingId.Should().NotBe(addedBooking2.BookingId);
+            addedBooking1.Id.Should().NotBe(addedBooking2.Id);
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace EventManagementService.Tests
             // Проверяем, что бронь существует
             result.Should().NotBeNull();
             // Проверяем, что бронь имеет правильный Id
-            result.BookingId.Should().Be(Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            result.Id.Should().Be(Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"));
         }
 
         [Fact]
@@ -116,7 +116,7 @@ namespace EventManagementService.Tests
             {
                 new Booking
                 {
-                    BookingId = Guid.NewGuid(),
+                    Id = Guid.NewGuid(),
                     Status = BookingStatus.Pending,
                     ProcessedAt = null
                 }

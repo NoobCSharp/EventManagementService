@@ -9,7 +9,7 @@ namespace EventManagementService.Mappers
         {
             return new BookingDtoResponse
             {
-                BookingId = booking.BookingId,
+                Id = booking.Id,
                 EventId = booking.EventId,
                 Status = booking.Status,
                 CreatedAt = booking.CreatedAt,

@@ -38,7 +38,7 @@ namespace EventManagementService.Services
 
             var booking = new Booking
             {
-                BookingId = Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 EventId = eventId,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
@@ -64,7 +64,7 @@ namespace EventManagementService.Services
         /// </returns>
         public Task<BookingDtoResponse> GetBookingByIdAsync(Guid id)
         {
-            var existingBooking = _bookingStore.Bookings.FirstOrDefault(b => b.BookingId == id);
+            var existingBooking = _bookingStore.Bookings.FirstOrDefault(b => b.Id == id);
 
             if (existingBooking is null)
                 throw new NotFoundException("Бронирование по указанному Id не найдено!");

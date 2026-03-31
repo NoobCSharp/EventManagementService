@@ -20,54 +20,55 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод возвращает объект PaginatedResultDto.
+        /// Метод возвращает объект EventDtoPaginatedResponse.
         /// </summary>
-        /// <returns>Объект PaginatedResultDto сформированный после фильтрации и пагинации.</returns>
+        /// <returns>Объект EventDtoPaginatedResponse сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
         public async Task<ActionResult> GetAllEvents([FromQuery] EventFilter eventFilter)
         {
-            var paginatedResult = await _eventService.GetEventsAsync(eventFilter);
-            return Ok(paginatedResult);
+            var eventDtoPaginatedResponse = await _eventService.GetEventsAsync(eventFilter);
+            return Ok(eventDtoPaginatedResponse);
         }
 
         /// <summary>
         /// Метод возвращает объект события по Id из коллекции.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <returns>Объект ResponseEventDto.</returns>
+        /// <returns>Объект EventDtoResponse.</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult> GetEventById(Guid id)
         {
-            var responseEventDto = await _eventService.GetEventByIdAsync(id);
-            return Ok(responseEventDto);
+            var eventDtoResponse = await _eventService.GetEventByIdAsync(id);
+            return Ok(eventDtoResponse);
         }
 
         /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
         /// <param name="requestEventDto">Новый объект события.</param>
-        /// <returns>Возвращает новый объект ResponseEventDto созданного события
+        /// <returns>Возвращает новый объект EventDtoResponse созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
+        [ProducesResponseType(typeof(EventDtoResponse), StatusCodes.Status201Created)]
         public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest requestEventDto)
         {          
-            var responseEventDto = await _eventService.AddEventAsync(requestEventDto);
+            var eventDtoResponse = await _eventService.AddEventAsync(requestEventDto);
 
             return CreatedAtAction(
                 nameof(GetEventById),
-                new { id = responseEventDto.EventId },
-                responseEventDto);
+                new { id = eventDtoResponse.EventId },
+                eventDtoResponse);
         }
 
         /// <summary>
         /// Метод обновляет существующий объект события.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <param name="requestEventDto">Объект RequestEventDto с новыми данными для обновления.</param>
+        /// <param name="eventDtoRequest">Объект EventDtoRequest с новыми данными для обновления.</param>
         [HttpPut("{id}")]
-        public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest requestEventDto)
+        public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest)
         {
-            await _eventService.ChangeEvent(id, requestEventDto);
+            await _eventService.ChangeEvent(id, eventDtoRequest);
             return NoContent();
         }
 

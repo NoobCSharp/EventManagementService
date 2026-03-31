@@ -7,7 +7,7 @@ namespace EventManagementService.Models
         /// <summary>
         /// Уникальный идентификатор брони
         /// </summary>
-        public Guid BookingId { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Идентификатор события, к которому относится бронь
