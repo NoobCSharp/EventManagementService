@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EventManagementService.Dtos
+namespace EventManagementService.Dtos.EventDtos
 {
     /// <summary>
     /// DTO событие для запросов
     /// </summary>
-    public record RequestEventDto : IValidatableObject
+    public record EventDtoRequest : IValidatableObject
     {
         /// <summary>
         /// Название события.

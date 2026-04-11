@@ -1,9 +1,9 @@
-﻿namespace EventManagementService.Dtos
+﻿namespace EventManagementService.Dtos.EventDtos
 {
     /// <summary>
     /// Объект возвращаемый результат пагинации
     /// </summary>
-    public record PaginatedResultDto
+    public record EventDtoPaginatedResponse
     {
         /// <summary>
         /// Количество событий прошедших фильтрацию
@@ -13,7 +13,7 @@
         /// <summary>
         /// Коллекция событий после фильтрации и пагинации
         /// </summary>
-        public IEnumerable<ResponseEventDto> ResponseEventDtos { get; init; } = [];
+        public IEnumerable<EventDtoResponse> ResponseEventDtos { get; init; } = [];
 
         /// <summary>
         /// Номер текущей страницы
@@ -24,6 +24,5 @@
         /// Количество элементов на текущей странице.
         /// </summary>
         public int NumberEventsOnCurrentPage { get; init; }
-
     }
 }

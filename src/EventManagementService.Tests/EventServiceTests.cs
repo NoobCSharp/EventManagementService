@@ -1,49 +1,31 @@
-﻿using EventManagementService.Dtos;
-using EventManagementService.Exceptions;
+﻿using EventManagementService.Exceptions;
 using EventManagementService.Filters;
-using EventManagementService.Models;
-using EventManagementService.Repositories;
+using EventManagementService.Stores;
 using EventManagementService.Services;
 using FluentAssertions;
 using Moq;
+using EventManagementService.Dtos.EventDtos;
 
 namespace EventManagementService.Tests
 {
     public class EventServiceTests
     {
-        // Метод подготовки входных данных (типизированный)
-        public static TheoryData<List<Event>> EventsData => new()
-        {
-             CreateEvents()
-        };
-
-        private static List<Event> CreateEvents() => new()
-        {
-            new Event() { Id = 1, Title = "AA", Description = "Description1", StartAt = new DateTime(2026, 03, 10), EndAt = new DateTime(2026, 03, 11) },
-            new Event() { Id = 2, Title = "AB", Description = "Description2", StartAt = new DateTime(2026, 03, 12), EndAt = new DateTime(2026, 03, 13) },
-            new Event() { Id = 3, Title = "BB", Description = "Description3", StartAt = new DateTime(2026, 03, 14), EndAt = new DateTime(2026, 03, 15) },
-            new Event() { Id = 4, Title = "BC", Description = "Description4", StartAt = new DateTime(2026, 03, 16), EndAt = new DateTime(2026, 03, 17) },
-            new Event() { Id = 5, Title = "CC", Description = "Description5", StartAt = new DateTime(2026, 03, 18), EndAt = new DateTime(2026, 03, 19) }
-        };
-
-        #region Successful scenarios 
+        #region Successful scenarios for EventService
 
         [Fact]
-        public void AddEvent_ShouldAddEvent_To_Collection()
+        public async Task AddEvent_ShouldAddEvent_To_Collection()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .SetupProperty(r => r.Events, events)
-                .Setup(r => r.GetAvailableId()).Returns(mockRepository.Object.Events.Any() ? mockRepository.Object.Events.Max(e => e.Id) + 1 : 1);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             // Act (действие)
-            var result = service.AddEvent(
-                new RequestEventDto()
+            var result = await service.AddEventAsync(
+                new EventDtoRequest()
                 {
                     Title = "Test",
                     Description = "TestDescription",
@@ -54,8 +36,8 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что в коллекцию добавлено событие, проверяем по уникальному Id
-            var addedEvent = mockRepository.Object.Events.Single(e => e.Id == result.Id);
-            //Проверяем что у добавленного соития совпадает Title
+            var addedEvent = mockEventStore.Object.Events.Single(e => e.EventId == result.EventId);
+            //Проверяем, что у добавленного соития совпадает Title
             addedEvent.Title.Should().Be("Test");
             //Проверяем, что у добавленного события совпадает Description
             addedEvent.Description.Should().Be("TestDescription");
@@ -63,21 +45,19 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_AllEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_AllEvents_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
             var filter = new EventFilter();
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что метод GetEvents возвращает PaginatedResultDto
@@ -86,17 +66,16 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
+        public async Task GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
         {
             // Arrange (подготовка)
             
-            var mockRepository = new Mock<IEventRepository>();
-            var events = CreateEvents();
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            var mockEventStore = new Mock<IEventStore>();
+            var events = ServicesTestHelper.CreateEvents();
 
-            var service = new EventService(mockRepository.Object);
+            mockEventStore.Setup(e => e.Events).Returns(events);
+
+            var service = new EventService(mockEventStore.Object);
             
             var filter = new EventFilter()
             {
@@ -104,7 +83,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что коллекция событий не null, если нет совпадения по фильтру
@@ -114,42 +93,38 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEventById_ShouldReturn_Event_From_Colletion_ById()
+        public async Task GetEventById_ShouldReturn_Event_From_Colletion_ById()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             // Act (действие)
-            var result = service.GetEventById(1);
+            var result = await service.GetEventByIdAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
 
             // Assert (проверка)
             //Проверяем, что событие существует
             result.Should().NotBeNull();
             //Проверяем, что событие имеет правильный Id
-            result.Id.Should().Be(1);
+            result.EventId.Should().Be(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
         }
 
         [Fact]
-        public void ChangeEvent_ShouldUpdate_Event_In_Collection()
+        public async Task ChangeEvent_ShouldUpdate_Event_In_Collection()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper. CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
-            var requestEventDto = new RequestEventDto()
+            var eventDtoRequest = new EventDtoRequest()
             {
                 Title = "NewTitle",
                 Description = "NewDescription",
@@ -158,34 +133,32 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            service.ChangeEvent(1, requestEventDto);
+            await service.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest);
 
             // Assert (проверка)
             // Проверяем, что у события по указанному Id были обновлены свойства
-            var updatedEvent = events.Single(e => e.Id == 1);
+            var updatedEvent = events.Single(e => e.EventId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
 
-            updatedEvent.Title.Should().Be(requestEventDto.Title);
-            updatedEvent.Description.Should().Be(requestEventDto.Description);
-            updatedEvent.StartAt.Should().Be(requestEventDto.StartAt);
-            updatedEvent.EndAt.Should().Be(requestEventDto.EndAt);
+            updatedEvent.Title.Should().Be(eventDtoRequest.Title);
+            updatedEvent.Description.Should().Be(eventDtoRequest.Description);
+            updatedEvent.StartAt.Should().Be(eventDtoRequest.StartAt);
+            updatedEvent.EndAt.Should().Be(eventDtoRequest.EndAt);
         }
 
         [Fact]
-        public void RemoveEvent_ShouldRemove_Event_From_Collection()
+        public async Task RemoveEvent_ShouldRemove_Event_From_Collection()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             // Act (действие)
-            service.RemoveEvent(1);
-            var removedEvent = events.FirstOrDefault(e => e.Id == 1);
+            await service.RemoveEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var removedEvent = events.FirstOrDefault(e => e.EventId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
 
             // Assert (проверка)
             // Проверяем, что событие больше не существует
@@ -195,17 +168,15 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             var title = "B";
 
@@ -215,7 +186,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что в коллекции содержаться только события после фильтрации по Title
@@ -223,17 +194,15 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_FilteredEvents_ByDate_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredEvents_ByDate_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             var fromDate = new DateTime(2026, 03, 12);
             var toDate = new DateTime(2026, 03, 15);
@@ -245,7 +214,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что в коллекции содержаться только события после фильтрации по StartAt и EndAt
@@ -253,17 +222,15 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_PaginatedEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_PaginatedEvents_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             var page = 2;
             var pageSize = 2;
@@ -275,27 +242,25 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что количество элементов соответствует количеству элементов на странице после пагинации
             result.ResponseEventDtos.Should().HaveCount(pageSize);
-            // Проверяем каждый элемент по Id
-            result.ResponseEventDtos.Select(e => e.Id).Should().Equal(3, 4);
+            // Проверяем, что каждый элемент соответствует требуемому Id
+            result.ResponseEventDtos.Select(e => e.EventId).Should().Equal(Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF"), Guid.Parse("4F9619FF-8B86-D011-B42D-00C04FC964FF"));
         }
 
         [Fact]
-        public void GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             var title = "B";
             var fromDate = new DateTime(2026, 03, 12);
@@ -313,13 +278,13 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filter);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что есть события в коллекции после фильтрации и пагинации
             result.ResponseEventDtos.Any().Should().BeTrue();
             // Проверяем что Id событий верный
-            result.ResponseEventDtos.Select(e => e.Id).Should().Equal(4);
+            result.ResponseEventDtos.Select(e => e.EventId).Should().Equal(Guid.Parse("4F9619FF-8B86-D011-B42D-00C04FC964FF"));
             // Проверяем, что в коллекции содержаться только события после фильтрации
             result.ResponseEventDtos
                 .Should().OnlyContain(e => e.Title.Contains(title, StringComparison.OrdinalIgnoreCase)
@@ -328,18 +293,15 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public void GetEvents_ShouldReturnLastPage_WithRemainingItem()
+        public async Task GetEvents_ShouldReturnLastPage_WithRemainingItem()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
             
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             var filer = new EventFilter()
             {
@@ -348,51 +310,47 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = service.GetEvents(filer);
+            var result = await service.GetEventsAsync(filer);
 
             // Assert (проверка)
             // Проверяем, что на последней странице содержится только одно событие с требуемым Id
-            result.ResponseEventDtos.Should().ContainSingle(e => e.Id == 5);
+            result.ResponseEventDtos.Should().ContainSingle(e => e.EventId == Guid.Parse("5F9619FF-8B86-D011-B42D-00C04FC964FF"));
         }
 
         #endregion
 
-        #region Unsuccessful scenarios
+        #region Unsuccessful scenarios for EventService
 
         [Fact]
-        public void GetEventById_WithNonExistingId_ShouldThrow_NotFoundException()
+        public async Task GetEventById_WithNonExistingId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            service.Invoking(s => s.GetEventById(10))
+            await service.Invoking(s => s.GetEventByIdAsync(new Guid()))
                 .Should()
-                .Throw<NotFoundException>();
+                .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
         public void ChangeEvent_WithNonExistingId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
-            var requestEventDto = new RequestEventDto()
+            var eventDtoRequest = new EventDtoRequest()
             {
                 Title = "NewTitle",
                 Description = "NewDescription",
@@ -402,24 +360,22 @@ namespace EventManagementService.Tests
 
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            service.Invoking(s => s.ChangeEvent(10, requestEventDto))
+            service.Invoking(s => s.ChangeEvent(new Guid(), eventDtoRequest))
                 .Should()
-                .Throw<NotFoundException>();
+                .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
         public void AddEvent_WithIncorrectData_Title_ShouldThrow_BadRequestException()
         {
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
-            var requestEventDto = new RequestEventDto
+            var eventDtoRequest = new EventDtoRequest
             {
                 Title = string.Empty,
                 Description = "NewDescription",
@@ -430,25 +386,23 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с некорректными входными данными по свойству Title
-            service.Invoking(s => s.AddEvent(requestEventDto))
+            service.Invoking(s => s.AddEventAsync(eventDtoRequest))
                 .Should()
-                .Throw<BadRequestException>();
+                .ThrowAsync<BadRequestException>();
         }
 
         [Fact]
         public void ChangeEvent_WithIncorrectData_EndAtEarlierStartAt_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
-            var events = CreateEvents();
-            var mockRepository = new Mock<IEventRepository>();
+            var events = ServicesTestHelper.CreateEvents();
+            var mockEventStore = new Mock<IEventStore>();
 
-            mockRepository
-                .Setup(r => r.Events)
-                .Returns(events);
+            mockEventStore.Setup(e => e.Events).Returns(events);
 
-            var service = new EventService(mockRepository.Object);
+            var service = new EventService(mockEventStore.Object);
 
-            var requestEventDto = new RequestEventDto()
+            var eventDtoRequest = new EventDtoRequest()
             {
                 Title = "NewTitle",
                 Description = "NewDescription",
@@ -459,9 +413,9 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с датой окончания события раньше даты начала события
-            service.Invoking(s => s.ChangeEvent(1, requestEventDto))
+            service.Invoking(s => s.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest))
                 .Should()
-                .Throw<BadRequestException>();
+                .ThrowAsync<BadRequestException>();
         }
 
         #endregion
