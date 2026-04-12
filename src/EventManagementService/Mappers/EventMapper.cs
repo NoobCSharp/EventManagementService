@@ -13,7 +13,9 @@ namespace EventManagementService.Mappers
                 Title = @event.Title,
                 Description = @event.Description,
                 StartAt = @event.StartAt,
-                EndAt = @event.EndAt
+                EndAt = @event.EndAt,
+                TotalSeats = @event.TotalSeats,
+                AvailableSeats = @event.AvailableSeats
             };
         }
     }

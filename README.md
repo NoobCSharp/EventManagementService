@@ -2,13 +2,22 @@
 Сервис управления мероприятиями на ASP.NET Core Web API
 
 ## Сборка проекта
-`dotnet build`
+
+``` bash
+dotnet build
+```
 
 ## Запуск проекта
-`dotnet run`
+
+``` bash
+dotnet run
+```
 
 ## Запуск всех тестов
-`dotnet test`
+
+``` bash
+dotnet test
+```
 
 ## Запуск конкретного теста, например:
 `dotnet test --filter "AddEvent_ShouldAddEvent_To_Collection"`
@@ -84,7 +93,7 @@ Enum BookingStatus:
      - POST `/events` с ответом получает EventId
  2. Создать бронь для события:
      - POST `/events/{id}/book`
-     - Ответ: созданный Booking:/
+     - Ответ: созданный Booking:\
        {
          "bookingId": "00000000-0000-0000-0000-000000000000",
          "eventId": "11111111-1111-1111-1111-111111111111",

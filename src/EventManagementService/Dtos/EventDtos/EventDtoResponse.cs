@@ -1,4 +1,5 @@
-﻿namespace EventManagementService.Dtos.EventDtos
+﻿
+namespace EventManagementService.Dtos.EventDtos
 {
     /// <summary>
     /// DTO событие для ответов
@@ -29,5 +30,15 @@
         /// Дата окончания события.
         /// </summary>
         public DateTime EndAt { get; init; }
+
+        /// <summary>
+        /// Общее количество мест на событие.
+        /// </summary>
+        public int? TotalSeats { get; init; }
+
+        /// <summary>
+        /// Текущее количество свободных мест.
+        /// </summary>
+        public int? AvailableSeats { get; init; }
     }
 }
