@@ -2,11 +2,7 @@
 {
     public sealed class BadRequestException : DomainException
     {
-        public override string Title => "Bad request";
-        public override int StatusCode => StatusCodes.Status400BadRequest;
-
-        public BadRequestException(string message) : base(message)
-        {
-        }
+        public BadRequestException(string message)
+            : base(message, StatusCodes.Status400BadRequest, "Bad Request") { }
     }
 }

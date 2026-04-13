@@ -48,49 +48,38 @@ namespace EventManagementService.Middlewares.ExceptionMiddleware
             }
         }
 
+
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
             ProblemDetails problem;
             int statusCode;
 
-            switch (ex)
+            if (ex is DomainException domainEx)
             {
-                case NotFoundException notFoundEx:
-                    statusCode = StatusCodes.Status404NotFound;
-                    problem = new ProblemDetails
-                    {
-                        Status = notFoundEx.StatusCode,
-                        Title = notFoundEx.Title,
-                        Detail = ex.Message
-                    };
+                statusCode = domainEx.StatusCode;
 
-                    _logger.LogInformation(ex.Message);
-                    break;
+                problem = new ProblemDetails
+                {
+                    Status = domainEx.StatusCode,
+                    Title = domainEx.Title,
+                    Detail = domainEx.Message
+                };
 
-                case BadRequestException badRequestEx:
-                    statusCode = StatusCodes.Status400BadRequest;
-                    problem = new ProblemDetails
-                    {
-                        Status = badRequestEx.StatusCode,
-                        Title = badRequestEx.Title,
-                        Detail = ex.Message
-                    };
+                _logger.LogInformation(ex.Message);
+            }
+            else
+            {
+                statusCode = StatusCodes.Status500InternalServerError;
 
-                    _logger.LogInformation(ex.Message);
-                    break;
+                problem = new ProblemDetails
+                {
+                    Status = statusCode,
+                    Title = "Internal server error",
+                    Detail = ex.Message
+                };
 
-                default:
-                    statusCode = StatusCodes.Status500InternalServerError;
-                    problem = new ProblemDetails
-                    {
-                        Status = statusCode,
-                        Title = "Internal server error",
-                        Detail = ex.Message
-                    };
-
-                    _logger.LogError(ex,
-                        "Unhandled exception. Method: {Method}, Path: {Path}\n", context.Request.Method, context.Request.Path);
-                    break;
+                _logger.LogError(ex,
+                    "Unhandled exception. Method: {Method}, Path: {Path}\n", context.Request.Method, context.Request.Path);
             }
 
             context.Response.ContentType = "application/json";
