@@ -10,18 +10,13 @@ namespace EventManagementService.BackgroundServices
         //А Scoped зависимости(если появятся позже) сломаются
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly IEventStore _eventStore;
-        private readonly IBookingStore _bookingStore;
         private readonly ILogger<BookingProcessingService> _logger;
-
 
         private readonly SemaphoreSlim _processingSemaphore = new(1, 1);
 
-        public BookingProcessingService(IServiceProvider serviceProvider, IEventStore eventStore, IBookingStore bookingStore, ILogger<BookingProcessingService> logger)
+        public BookingProcessingService(IServiceProvider serviceProvider, ILogger<BookingProcessingService> logger)
         {
             _serviceProvider = serviceProvider;
-            _eventStore = eventStore;
-            _bookingStore = bookingStore;
             _logger = logger;
         }
 
@@ -37,16 +32,16 @@ namespace EventManagementService.BackgroundServices
                 try
                 {
                     using var scope = _serviceProvider.CreateScope();
-
                     var bookingStore = scope.ServiceProvider.GetRequiredService<IBookingStore>();
 
-                    // Получаем список броней, которые находятся в статусе "Pending" и не имеют даты обработки
-                    List<Booking> pendingBookings = bookingStore.GetPending().ToList();
+                    var pendingBookings = bookingStore.GetPending().ToList();
 
                     var tasks = pendingBookings.Select(booking => ProcessBookingAsync(booking, stoppingToken));
 
-                    // Ожидаем завершения всех задач обработки броней
                     await Task.WhenAll(tasks);
+
+                    // Задержка между итерациями, чтобы не перегружать систему постоянными запросами к хранилищу
+                    await Task.Delay(500, stoppingToken);
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
                 {
@@ -55,15 +50,20 @@ namespace EventManagementService.BackgroundServices
                 catch (Exception ex)
                 {
                     // Логируем ошибку, но не останавливаем сервис, чтобы он продолжал работать
-                    _logger.LogError(ex, "Ошибка при изменении статуса брони!");
+                    _logger.LogError(ex, "Ошибка при обработке броней!");
                 }
             }
 
             _logger.LogInformation("Сервис управления обработкой броней остановлен");
         }
 
-        private async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
+        public async Task ProcessBookingAsync(Booking booking, CancellationToken stoppingToken)
         {
+            using var scope = _serviceProvider.CreateScope();
+
+            var bookingStore = scope.ServiceProvider.GetRequiredService<IBookingStore>();
+            var eventStore = scope.ServiceProvider.GetRequiredService<IEventStore>();
+
             Event? @event = null;
             DateTime processedAt = DateTime.UtcNow;
 
@@ -71,27 +71,35 @@ namespace EventManagementService.BackgroundServices
             {
                 await Task.Delay(1000, stoppingToken);
 
+                // Критическая секция: доступ к общим ресурсам (хранилищам) должен быть синхронизирован, чтобы избежать гонок данных и обеспечить целостность данных
                 await _processingSemaphore.WaitAsync(stoppingToken);
 
-                @event = _eventStore.Events.FirstOrDefault(e => e.EventId == booking.EventId);
-
-                if (@event is null)
+                try
                 {
-                    _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
+                    @event = eventStore.Events.FirstOrDefault(e => e.EventId == booking.EventId);
 
-                    // Если события нет, то отклоняем бронь
-                    booking.Reject(processedAt);
+                    if (@event is null)
+                    {
+                        _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
 
-                    // Обновляем бронь в хранилище
-                    _bookingStore.Update(booking);
+                        // Если события нет, то отклоняем бронь
+                        booking.Reject(processedAt);
+                        bookingStore.Update(booking);
+                    }
+                    else
+                    {
+                        // Подтверждаем бронь
+                        booking.Confirm(processedAt);
+                        bookingStore.Update(booking);
 
-                    return;
+                        _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
+                    }
                 }
-
-                booking.Confirm(processedAt);
-
-                _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
-
+                finally
+                {
+                    // Освобождаем семафор, чтобы другие задачи могли продолжить обработку броней
+                    _processingSemaphore.Release();
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -99,16 +107,13 @@ namespace EventManagementService.BackgroundServices
 
                 // В случае отмены операции, устанавливаем статус "Rejected"
                 booking.Reject(processedAt);
-
-                // Обновляем бронь в хранилище
-                _bookingStore.Update(booking);
+                bookingStore.Update(booking);
 
                 if (@event is not null) 
                 {
-                    // Освобождаем зарезервированные места
+                    // Если операция была отменена, освобождаем зарезервированные места, чтобы они снова стали доступными для других бронирований
                     @event.ReleaseSeats();
-
-                    _eventStore.Update(@event);
+                    eventStore.Update(@event);
                 }
             }
             catch (Exception)
@@ -117,24 +122,13 @@ namespace EventManagementService.BackgroundServices
 
                 // В случае ошибки при обработке брони, устанавливаем статус "Rejected"
                 booking.Reject(processedAt);
-
-                // Обновляем бронь в хранилище
-                _bookingStore.Update(booking);
+                bookingStore.Update(booking);
 
                 if (@event is not null)
                 {
-                    // Освобождаем зарезервированные места
+                    // Если произошла ошибка, освобождаем зарезервированные места, чтобы они снова стали доступными для других бронирований
                     @event.ReleaseSeats();
-
-                    _eventStore.Update(@event);
-                }
-            }
-            finally
-            {
-                // Освобождаем семафор, чтобы другие задачи могли продолжить обработку броней
-                if (_processingSemaphore.CurrentCount == 0)
-                {
-                    _processingSemaphore.Release();
+                    eventStore.Update(@event);
                 }
             }
         }

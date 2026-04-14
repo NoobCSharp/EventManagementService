@@ -133,10 +133,10 @@ namespace EventManagementService.Tests
             var provider = services.BuildServiceProvider();
 
             // Реализация ILogger, которая ничего не логирует (используется в тестах, чтобы не генерировать записи)
-            var svc = new BookingProcessingService(provider, NullLogger<BookingProcessingService>.Instance);
+            var bookingProcessingService = new BookingProcessingService(provider, NullLogger<BookingProcessingService>.Instance);
 
             // Act
-            await svc.ProcessPendingBookingsAsync(CancellationToken.None);
+            await bookingProcessingService.(CancellationToken.None);
 
             // Assert
             bookings.First().Status.Should().Be(BookingStatus.Confirmed);
