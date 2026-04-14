@@ -50,6 +50,7 @@ namespace EventManagementService.Controllers
         public async Task<ActionResult<BookingDtoResponse>> GetBookingById(Guid id)
         {
             var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id);
+
             return Ok(bookingDtoResponse);
         }
     }
