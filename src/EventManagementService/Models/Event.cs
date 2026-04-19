@@ -5,12 +5,12 @@
         /// <summary>
         /// Идентификатор события.
         /// </summary>
-        public Guid EventId { get; set; }
+        required public Guid EventId { get; set; }
 
         /// <summary>
         /// Название события.
         /// </summary>
-        public string Title { get; set; } = string.Empty;
+        required public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// Описание события.
@@ -20,17 +20,17 @@
         /// <summary>
         /// Дата начала события.
         /// </summary>
-        public DateTime StartAt { get; set; }
+        required public DateTime StartAt { get; set; }
 
         /// <summary>
         /// Дата окончания события.
         /// </summary>
-        public DateTime EndAt { get; set; }
+        required public DateTime EndAt { get; set; }
 
         /// <summary>
         /// Общее количество мест на событие.
         /// </summary>
-        public int TotalSeats { get; set; }
+        required public int TotalSeats { get; set; }
 
         /// <summary>
         /// Текущее количество свободных мест.
