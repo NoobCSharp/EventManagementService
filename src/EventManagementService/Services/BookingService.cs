@@ -50,7 +50,7 @@ namespace EventManagementService.Services
                 if (existingEvent is null)
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
-                if (!existingEvent.TryReserveSeats(1))
+                if (!existingEvent.TryReserveSeats())
                     throw new NoAvailableSeatsException("Нет доступных мест для бронирования на данное событие!");
 
                 var booking = new Booking
