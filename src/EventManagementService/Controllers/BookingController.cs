@@ -15,14 +15,19 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод добавляет объект брони в коллекцию.
+        /// Метод создает бронирование для события.
         /// </summary>
-        /// <param name="id">Id события для добавления брони.</param>
-        /// <returns>Возвращает новый объект BookingDtoResponse созданной брони
-        /// и заголовок Location, указывающий на метод получения брони по Id.</returns>
+        /// <param name="id">Идентификатор события для добавления брони</param>
+        /// <returns>Созданная бронь и заголовок Location, 
+        /// указывающий на метод получения брони по Id.</returns>
+        /// <response code="202">Бронь успешно создана</response>
+        /// <response code="404">Событие не найдено</response>
+        /// <response code="409">Нет доступных мест на событие</response>
         [HttpPost("events/{id}/book")]
         [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status202Accepted)]
-        public async Task<IActionResult> CreateBooking(Guid id)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id)
         {
             var bookingDtoResponse = await _bookingService.CreateBookingAsync(id);
 
@@ -33,14 +38,19 @@ namespace EventManagementService.Controllers
         }
 
         /// <summary>
-        /// Метод возвращает объект брони по Id из коллекции.
+        /// Метод возвращает объект брони по идентификатору.
         /// </summary>
         /// <param name="id">Уникальный идентификатор брони.</param>
-        /// <returns>Объект BookingDtoResponse.</returns>
+        /// <returns>Объект брони</returns>
+        /// <response code="200">Бронь успешно найдена</response>
+        /// <response code="404">Бронь не найдена</response>
         [HttpGet("bookings/{id}")]
-        public async Task<ActionResult> GetBookingById(Guid id)
+        [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<BookingDtoResponse>> GetBookingById(Guid id)
         {
             var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id);
+
             return Ok(bookingDtoResponse);
         }
     }

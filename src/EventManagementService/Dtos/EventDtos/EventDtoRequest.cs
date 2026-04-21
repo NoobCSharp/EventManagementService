@@ -31,6 +31,12 @@ namespace EventManagementService.Dtos.EventDtos
         public required DateTime EndAt { get; init; }
 
         /// <summary>
+        /// Общее количество мест на событие.
+        /// </summary>
+        [Required]
+        public int TotalSeats { get; init; }
+
+        /// <summary>
         /// Метод проверяет, что дата окончания EndAt больше даты начала StartAt.
         /// </summary>
         /// <param name="validationContext">Контекст валидации.</param>
@@ -41,6 +47,12 @@ namespace EventManagementService.Dtos.EventDtos
             {
                 yield return new ValidationResult(
                     "Дата окончания события не может быть раньше даты начала события!");
+            }
+
+            if (TotalSeats <= 0)
+            {
+                yield return new ValidationResult(
+                    "Общее количество мест должно быть положительным числом!");
             }
         }
     }

@@ -12,6 +12,14 @@ namespace EventManagementService.Services
         private readonly IEventStore _eventStore;
         private readonly IBookingStore _bookingStore;
 
+        /// <summary>
+        /// Объект для блокировки, используемый при модификации коллекции бронирований.
+        /// Предназначен для обеспечения простейшей локальной синхронизации (монитор lock).
+        /// Примечание: Необходимо применять <c>lock(_bookingLock)</c> вокруг критических разделов, 
+        /// если множество потоков может одновременно изменять <c>_bookingStore.Bookings</c>.
+        /// </summary>
+        private readonly object _bookingLock = new();
+
         public BookingService(IEventStore eventStore, IBookingStore bookingStore)
         {
             _eventStore = eventStore;
@@ -20,7 +28,6 @@ namespace EventManagementService.Services
 
         /// <summary>
         /// Создает бронь для указанного события по Id.
-        /// Если событие не найдено, бросает исключение NotFoundException.
         /// </summary>
         /// <param name="eventId">
         /// Уникальный идентификатор события, к которому относится бронь.
@@ -28,28 +35,38 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект брони.
         /// </returns>
+        /// <remarks>
+        /// Если событие не найдено, бросает исключение NotFoundException.
+        /// Если нет доступных мест на событие, бросает исключение NoAvailableSeatsException
+        /// </remarks>
         public Task<BookingDtoResponse> CreateBookingAsync(Guid eventId)
         {
-            var existingEvent = _eventStore.Events
-                .FirstOrDefault(e => e.EventId == eventId);
-
-            if (existingEvent is null)
-                throw new NotFoundException("Событие по указанному Id не найдено!");
-
-            var booking = new Booking
+            lock (_bookingLock)
             {
-                Id = Guid.NewGuid(),
-                EventId = eventId,
-                Status = BookingStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                ProcessedAt = null
-            };
+                var existingEvent = _eventStore.Events
+                    .FirstOrDefault(e => e.EventId == eventId);
 
-            _bookingStore.Bookings.Add(booking);
+                if (existingEvent is null)
+                    throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
-            var bookingDtoResponse = BookingMapper.BookingToResponse(booking);
+                if (!existingEvent.TryReserveSeats())
+                    throw new NoAvailableSeatsException("Нет доступных мест для бронирования на данное событие!");
 
-            return Task.FromResult(bookingDtoResponse);
+                var booking = new Booking
+                {
+                    Id = Guid.NewGuid(),
+                    EventId = eventId,
+                    Status = BookingStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    ProcessedAt = null
+                };
+
+                _bookingStore.Bookings.Add(booking);
+
+                var bookingDtoResponse = BookingMapper.BookingToResponse(booking);
+
+                return Task.FromResult(bookingDtoResponse);
+            }
         }
 
         /// <summary>
@@ -67,11 +84,11 @@ namespace EventManagementService.Services
             var existingBooking = _bookingStore.Bookings.FirstOrDefault(b => b.Id == id);
 
             if (existingBooking is null)
-                throw new NotFoundException("Бронирование по указанному Id не найдено!");
+                throw new NotFoundException("Бронирование по указанному идентификатору не найдено!");
 
             var bookingDtoResponse = BookingMapper.BookingToResponse(existingBooking);
 
-            return Task.FromResult(bookingDtoResponse); 
+            return Task.FromResult(bookingDtoResponse);
         }
     }
 }

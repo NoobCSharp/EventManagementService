@@ -16,7 +16,7 @@ namespace EventManagementService.Tests
         public async Task AddEvent_ShouldAddEvent_To_Collection()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -31,6 +31,7 @@ namespace EventManagementService.Tests
                     Description = "TestDescription",
                     StartAt = DateTime.Now,
                     EndAt = DateTime.Now.AddDays(1),
+                    TotalSeats = 1,
                 }
             );
 
@@ -41,14 +42,15 @@ namespace EventManagementService.Tests
             addedEvent.Title.Should().Be("Test");
             //Проверяем, что у добавленного события совпадает Description
             addedEvent.Description.Should().Be("TestDescription");
-
+            //Проверяем, что у добавленного события совпадает TotalSeats
+            addedEvent.TotalSeats.Should().Be(1);
         }
 
         [Fact]
         public async Task GetEvents_ShouldReturns_AllEvents_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -71,7 +73,7 @@ namespace EventManagementService.Tests
             // Arrange (подготовка)
             
             var mockEventStore = new Mock<IEventStore>();
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
 
@@ -96,7 +98,7 @@ namespace EventManagementService.Tests
         public async Task GetEventById_ShouldReturn_Event_From_Colletion_ById()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -117,7 +119,7 @@ namespace EventManagementService.Tests
         public async Task ChangeEvent_ShouldUpdate_Event_In_Collection()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper. CreateEvents();
+            var events = ServicesTestHelper. CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -149,7 +151,7 @@ namespace EventManagementService.Tests
         public async Task RemoveEvent_ShouldRemove_Event_From_Collection()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -171,7 +173,7 @@ namespace EventManagementService.Tests
         public async Task GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -197,7 +199,7 @@ namespace EventManagementService.Tests
         public async Task GetEvents_ShouldReturns_FilteredEvents_ByDate_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -225,7 +227,7 @@ namespace EventManagementService.Tests
         public async Task GetEvents_ShouldReturns_PaginatedEvents_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -255,7 +257,7 @@ namespace EventManagementService.Tests
         public async Task GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_Colletion()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -296,7 +298,7 @@ namespace EventManagementService.Tests
         public async Task GetEvents_ShouldReturnLastPage_WithRemainingItem()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
             
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -325,7 +327,7 @@ namespace EventManagementService.Tests
         public async Task GetEventById_WithNonExistingId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -343,7 +345,7 @@ namespace EventManagementService.Tests
         public void ChangeEvent_WithNonExistingId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -368,7 +370,7 @@ namespace EventManagementService.Tests
         [Fact]
         public void AddEvent_WithIncorrectData_Title_ShouldThrow_BadRequestException()
         {
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);
@@ -395,7 +397,7 @@ namespace EventManagementService.Tests
         public void ChangeEvent_WithIncorrectData_EndAtEarlierStartAt_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateEvents();
+            var events = ServicesTestHelper.CreateFakeEvents();
             var mockEventStore = new Mock<IEventStore>();
 
             mockEventStore.Setup(e => e.Events).Returns(events);

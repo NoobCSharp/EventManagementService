@@ -71,13 +71,18 @@ namespace EventManagementService.Services
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
+            if (requestEventDto.TotalSeats <= 0)
+                throw new BadRequestException("Общее количество мест должно быть положительным числом!");
+
             Event @event = new()
             {
                 EventId = Guid.NewGuid(),
                 Title = requestEventDto.Title,
                 Description = requestEventDto.Description,
                 StartAt = requestEventDto.StartAt,
-                EndAt = requestEventDto.EndAt
+                EndAt = requestEventDto.EndAt,
+                TotalSeats = requestEventDto.TotalSeats,
+                AvailableSeats = requestEventDto.TotalSeats
             };
 
             _eventRepository.Events.Add(@event);

@@ -2,11 +2,7 @@
 {
     public sealed class NotFoundException : DomainException
     {
-        public override string Title => "Resource not found";
-        public override int StatusCode => StatusCodes.Status404NotFound;
-
-        public NotFoundException(string message) : base(message)
-        { 
-        }
+        public NotFoundException(string message)
+            : base(message, StatusCodes.Status404NotFound, "Resource not found") { }
     }
 }
