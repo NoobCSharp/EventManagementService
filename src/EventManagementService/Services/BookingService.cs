@@ -29,7 +29,7 @@ namespace EventManagementService.Services
         /// <summary>
         /// Создает бронь для указанного события по Id.
         /// </summary>
-        /// <param name="eventId">
+        /// <param name="id">
         /// Уникальный идентификатор события, к которому относится бронь.
         /// </param>
         /// <returns>
@@ -39,12 +39,12 @@ namespace EventManagementService.Services
         /// Если событие не найдено, бросает исключение NotFoundException.
         /// Если нет доступных мест на событие, бросает исключение NoAvailableSeatsException
         /// </remarks>
-        public Task<BookingDtoResponse> CreateBookingAsync(Guid eventId)
+        public Task<BookingDtoResponse> CreateBookingAsync(Guid id)
         {
             lock (_bookingLock)
             {
                 var existingEvent = _eventStore.Events
-                    .FirstOrDefault(e => e.EventId == eventId);
+                    .FirstOrDefault(e => e.EventId == id);
 
                 if (existingEvent is null)
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
@@ -54,8 +54,8 @@ namespace EventManagementService.Services
 
                 var booking = new Booking
                 {
-                    Id = Guid.NewGuid(),
-                    EventId = eventId,
+                    BookingId = Guid.NewGuid(),
+                    EventId = id,
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
                     ProcessedAt = null
@@ -81,7 +81,7 @@ namespace EventManagementService.Services
         /// </returns>
         public Task<BookingDtoResponse> GetBookingByIdAsync(Guid id)
         {
-            var existingBooking = _bookingStore.Bookings.FirstOrDefault(b => b.Id == id);
+            var existingBooking = _bookingStore.Bookings.FirstOrDefault(b => b.BookingId == id);
 
             if (existingBooking is null)
                 throw new NotFoundException("Бронирование по указанному идентификатору не найдено!");

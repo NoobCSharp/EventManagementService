@@ -38,6 +38,15 @@
         public int AvailableSeats { get; set; }
 
         /// <summary>
+        /// Коллекция броней на событие
+        /// </summary>
+        public List<Booking> Bookings { get; set; } = new List<Booking>();
+
+        public Event()
+        {
+        }
+
+        /// <summary>
         /// Пытается зарезервировать указанное количество мест для события.
         /// </summary>
         /// <param name="count">

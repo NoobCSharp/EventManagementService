@@ -16,9 +16,9 @@ namespace EventManagementService.Tests
 
         public static List<Booking> CreateFakeBookings() =>
         [
-            new Booking() { Id = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), EventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), Status = BookingStatus.Pending, CreatedAt = new DateTime(2026, 03, 11), ProcessedAt = null },
-            new Booking() { Id = Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"), EventId = Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"), Status = BookingStatus.Pending, CreatedAt = new DateTime(2026, 03, 13), ProcessedAt = null },
-            new Booking() { Id = Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF"), EventId = Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF"), Status = BookingStatus.Pending, CreatedAt = new DateTime(2026, 03, 15), ProcessedAt = null },
+            new Booking() { BookingId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), EventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), Status = BookingStatus.Pending, CreatedAt = new DateTime(2026, 03, 11), ProcessedAt = null },
+            new Booking() { BookingId = Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"), EventId = Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"), Status = BookingStatus.Pending, CreatedAt = new DateTime(2026, 03, 13), ProcessedAt = null },
+            new Booking() { BookingId = Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF"), EventId = Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF"), Status = BookingStatus.Pending, CreatedAt = new DateTime(2026, 03, 15), ProcessedAt = null },
         ];
     }
 }

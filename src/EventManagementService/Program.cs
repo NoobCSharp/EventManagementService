@@ -1,7 +1,9 @@
 ﻿using EventManagementService.BackgroundServices;
+using EventManagementService.DataAccess;
 using EventManagementService.Middlewares.ExceptionMiddleware;
 using EventManagementService.Services;
 using EventManagementService.Stores;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 namespace EventManagementService
@@ -33,6 +35,19 @@ namespace EventManagementService
             });
 
             builder.Services.AddHostedService<BookingProcessingService>();
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'Default' not found.");
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(connectionString)                      // Обязательно
+                       .LogTo(Console.WriteLine, LogLevel.Information)   // Удобно в разработке
+                       .EnableDetailedErrors()                           // Удобно в разработке
+                       .EnableSensitiveDataLogging());                   // Осторожно! Только для dev 
+
+
+            //builder.Services.AddDbContext<AppDbContext>(options =>
+            //    options.UseNpgsql(connectionString));
 
             var app = builder.Build();
 

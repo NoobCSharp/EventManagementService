@@ -41,7 +41,7 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что в коллекцию добавлена одна бронь, проверяем по уникальному Id
-            var addedBooking = mockBookingStore.Object.Bookings.Single(e => e.Id == result.Id);
+            var addedBooking = mockBookingStore.Object.Bookings.Single(e => e.BookingId == result.BookingId);
             // Проверяем, что бронь добавлена для события с указанным Id
             addedBooking.EventId.Should().Be(eventId);
             //Проверяем, что у добавленной брони установлен корректный статус при создании
@@ -82,7 +82,7 @@ namespace EventManagementService.Tests
                 .HaveCount(2)
                 .And.OnlyContain(b => b.Status == BookingStatus.Pending)
                 .And.OnlyContain(b => b.EventId == eventId)
-                .And.OnlyHaveUniqueItems(b => b.Id);
+                .And.OnlyHaveUniqueItems(b => b.BookingId);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace EventManagementService.Tests
             // Проверяем, что бронь существует
             result.Should().NotBeNull();
             // Проверяем, что бронь имеет правильный Id
-            result.Id.Should().Be(Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            result.BookingId.Should().Be(Guid.Parse("2F9619FF-8B86-D011-B42D-00C04FC964FF"));
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace EventManagementService.Tests
                 .HaveCount(limit)
                 .And.OnlyContain(b => b.EventId == eventId)
                 .And.OnlyContain(b => b.Status == BookingStatus.Pending)
-                .And.OnlyHaveUniqueItems(b => b.Id);
+                .And.OnlyHaveUniqueItems(b => b.BookingId);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace EventManagementService.Tests
             // Arrange
             var booking = new Booking
             {
-                Id = Guid.NewGuid(),
+                BookingId = Guid.NewGuid(),
                 EventId = Guid.NewGuid(),
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow
@@ -297,7 +297,7 @@ namespace EventManagementService.Tests
             // Arrange
             var booking = new Booking
             {
-                Id = Guid.NewGuid(),
+                BookingId = Guid.NewGuid(),
                 EventId = Guid.NewGuid(),
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow
@@ -351,7 +351,7 @@ namespace EventManagementService.Tests
 
             // Act
             var bookingDto = await service.CreateBookingAsync(eventId);
-            var booking = mockBookingStore.Object.Bookings.Single(b => b.Id == bookingDto.Id);
+            var booking = mockBookingStore.Object.Bookings.Single(b => b.BookingId == bookingDto.BookingId);
 
             booking.Reject(DateTime.UtcNow);
             @event.ReleaseSeats();
@@ -399,20 +399,20 @@ namespace EventManagementService.Tests
 
             // Act
             var firstBookingDto = await service.CreateBookingAsync(eventId);
-            var firstBooking = mockBookingStore.Object.Bookings.Single(b => b.Id == firstBookingDto.Id);
+            var firstBooking = mockBookingStore.Object.Bookings.Single(b => b.BookingId == firstBookingDto.BookingId);
 
             firstBooking.Reject(DateTime.UtcNow);
             @event.ReleaseSeats();
 
             var secondBookingDto = await service.CreateBookingAsync(eventId);
-            var secondBooking = mockBookingStore.Object.Bookings.Single(b => b.Id == secondBookingDto.Id);
+            var secondBooking = mockBookingStore.Object.Bookings.Single(b => b.BookingId == secondBookingDto.BookingId);
 
             // Assert
             // Проверяем, что после отклонения первой брони и освобождения места,
             // можно создать новую бронь для того же события, и у новой брони уникальный Id,
             // а количество доступных мест соответствует 0 (так как новое бронирование уже заняло место)
             secondBooking.Should().NotBeNull();
-            secondBooking.Id.Should().NotBe(firstBooking.Id);
+            secondBooking.BookingId.Should().NotBe(firstBooking.BookingId);
             @event.AvailableSeats.Should().Be(0);
         }
 
@@ -529,7 +529,7 @@ namespace EventManagementService.Tests
             // у каждой уникальный Id
             bookings.Should()
                 .HaveCount(requestsCount)
-                .And.OnlyHaveUniqueItems(b => b.Id);
+                .And.OnlyHaveUniqueItems(b => b.BookingId);
         }
 
         /// <summary>
@@ -544,7 +544,7 @@ namespace EventManagementService.Tests
             {
                 new Booking
                 {
-                    Id = Guid.NewGuid(),
+                    BookingId = Guid.NewGuid(),
                     EventId = Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF"),
                     Status = BookingStatus.Pending,
                     ProcessedAt = null

@@ -33,7 +33,7 @@ namespace EventManagementService.Controllers
 
             return AcceptedAtAction(
                 nameof(GetBookingById),
-                new { id = bookingDtoResponse.Id },
+                new { id = bookingDtoResponse.BookingId },
                 bookingDtoResponse);
         }
 

@@ -80,7 +80,7 @@ namespace EventManagementService.BackgroundServices
 
                     if (@event is null)
                     {
-                        _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.Id);
+                        _logger.LogWarning("Событие для брони {BookingId} не найдено. Бронь отклонена", booking.BookingId);
 
                         // Если события нет, то отклоняем бронь
                         booking.Reject(processedAt);
@@ -92,7 +92,7 @@ namespace EventManagementService.BackgroundServices
                         booking.Confirm(processedAt);
                         bookingStore.Update(booking);
 
-                        _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.Id);
+                        _logger.LogInformation("Бронь {BookingId} обработана и подтверждена", booking.BookingId);
                     }
                 }
                 finally
@@ -103,7 +103,7 @@ namespace EventManagementService.BackgroundServices
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Обработка брони {BookingId} была отменена", booking.Id);
+                _logger.LogInformation("Обработка брони {BookingId} была отменена", booking.BookingId);
 
                 // В случае отмены операции, устанавливаем статус "Rejected"
                 booking.Reject(processedAt);
@@ -118,7 +118,7 @@ namespace EventManagementService.BackgroundServices
             }
             catch (Exception)
             {
-                _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", booking.Id);
+                _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", booking.BookingId);
 
                 // В случае ошибки при обработке брони, устанавливаем статус "Rejected"
                 booking.Reject(processedAt);
