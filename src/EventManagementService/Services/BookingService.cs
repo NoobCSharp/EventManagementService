@@ -1,29 +1,21 @@
-﻿using EventManagementService.Dtos.BookingDtos;
+﻿using EventManagementService.DataAccess;
+using EventManagementService.Dtos.BookingDtos;
 using EventManagementService.Enums;
 using EventManagementService.Exceptions;
 using EventManagementService.Mappers;
 using EventManagementService.Models;
-using EventManagementService.Stores;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventManagementService.Services
 {
     public class BookingService : IBookingService
     {
-        private readonly IEventStore _eventStore;
-        private readonly IBookingStore _bookingStore;
-
-        /// <summary>
-        /// Объект для блокировки, используемый при модификации коллекции бронирований.
-        /// Предназначен для обеспечения простейшей локальной синхронизации (монитор lock).
-        /// Примечание: Необходимо применять <c>lock(_bookingLock)</c> вокруг критических разделов, 
-        /// если множество потоков может одновременно изменять <c>_bookingStore.Bookings</c>.
-        /// </summary>
-        private readonly object _bookingLock = new();
-
-        public BookingService(IEventStore eventStore, IBookingStore bookingStore)
+        private readonly AppDbContext _appDbContext;
+        private static readonly SemaphoreSlim _semaphore = new(1, 1);
+        
+        public BookingService(AppDbContext appDbContext)
         {
-            _eventStore = eventStore;
-            _bookingStore = bookingStore;
+            _appDbContext = appDbContext;
         }
 
         /// <summary>
@@ -39,12 +31,14 @@ namespace EventManagementService.Services
         /// Если событие не найдено, бросает исключение NotFoundException.
         /// Если нет доступных мест на событие, бросает исключение NoAvailableSeatsException
         /// </remarks>
-        public Task<BookingDtoResponse> CreateBookingAsync(Guid id)
+        public async Task<BookingDtoResponse> CreateBookingAsync(Guid id, CancellationToken cancellationToken)
         {
-            lock (_bookingLock)
+            await _semaphore.WaitAsync(cancellationToken);
+
+            try
             {
-                var existingEvent = _eventStore.Events
-                    .FirstOrDefault(e => e.EventId == id);
+                var existingEvent = await _appDbContext.Events
+                    .FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
 
                 if (existingEvent is null)
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
@@ -58,14 +52,19 @@ namespace EventManagementService.Services
                     EventId = id,
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
-                    ProcessedAt = null
+                    ProcessedAt = null,
+                    Event = existingEvent
                 };
 
-                _bookingStore.Bookings.Add(booking);
+                _appDbContext.Bookings.Add(booking);
 
-                var bookingDtoResponse = BookingMapper.BookingToResponse(booking);
+                await _appDbContext.SaveChangesAsync(cancellationToken);
 
-                return Task.FromResult(bookingDtoResponse);
+                return BookingMapper.BookingToResponse(booking);
+            }
+            finally
+            { 
+                _semaphore.Release();
             }
         }
 
@@ -79,16 +78,16 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект брони из коллекции.
         /// </returns>
-        public Task<BookingDtoResponse> GetBookingByIdAsync(Guid id)
+        public async Task<BookingDtoResponse> GetBookingByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            var existingBooking = _bookingStore.Bookings.FirstOrDefault(b => b.BookingId == id);
+            var existingBooking = await _appDbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == id, cancellationToken);
 
             if (existingBooking is null)
                 throw new NotFoundException("Бронирование по указанному идентификатору не найдено!");
 
             var bookingDtoResponse = BookingMapper.BookingToResponse(existingBooking);
 
-            return Task.FromResult(bookingDtoResponse);
+            return bookingDtoResponse;
         }
     }
 }

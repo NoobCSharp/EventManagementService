@@ -67,6 +67,9 @@
         /// </remarks>
         public bool TryReserveSeats(int count = 1)
         {
+            if (count <= 0)
+                throw new ArgumentException("Количество мест должно быть положительным!", nameof(count));
+
             if (AvailableSeats >= count)
             {
                 AvailableSeats -= count;

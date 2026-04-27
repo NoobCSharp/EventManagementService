@@ -27,9 +27,9 @@ namespace EventManagementService.Controllers
         [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status202Accepted)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id)
+        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id, CancellationToken cancellationToken)
         {
-            var bookingDtoResponse = await _bookingService.CreateBookingAsync(id);
+            var bookingDtoResponse = await _bookingService.CreateBookingAsync(id, cancellationToken);
 
             return AcceptedAtAction(
                 nameof(GetBookingById),
@@ -47,9 +47,9 @@ namespace EventManagementService.Controllers
         [HttpGet("bookings/{id}")]
         [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<BookingDtoResponse>> GetBookingById(Guid id)
+        public async Task<ActionResult<BookingDtoResponse>> GetBookingById(Guid id, CancellationToken cancellationToken)
         {
-            var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id);
+            var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id, cancellationToken);
 
             return Ok(bookingDtoResponse);
         }

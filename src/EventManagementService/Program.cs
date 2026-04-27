@@ -2,7 +2,6 @@
 using EventManagementService.DataAccess;
 using EventManagementService.Middlewares.ExceptionMiddleware;
 using EventManagementService.Services;
-using EventManagementService.Stores;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -18,11 +17,8 @@ namespace EventManagementService
             builder.Services.AddSwaggerGen();
             builder.Services.AddControllers();
 
-            builder.Services.AddSingleton<IEventStore, EventStore>();
-            builder.Services.AddSingleton<IBookingStore, BookingStore>();
-
-            builder.Services.AddSingleton<IEventService, EventService>();
-            builder.Services.AddSingleton<IBookingService, BookingService>();
+            builder.Services.AddScoped<IEventService, EventService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
@@ -31,7 +27,7 @@ namespace EventManagementService
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters
-                .Add(new JsonStringEnumConverter());
+                    .Add(new JsonStringEnumConverter());
             });
 
             builder.Services.AddHostedService<BookingProcessingService>();
@@ -52,7 +48,6 @@ namespace EventManagementService
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-
             app.UseExceptionHandlingMiddleware();
    
             if (app.Environment.IsDevelopment())
