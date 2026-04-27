@@ -40,7 +40,7 @@
         /// <summary>
         /// Коллекция броней на событие
         /// </summary>
-        public List<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
         public Event()
         {

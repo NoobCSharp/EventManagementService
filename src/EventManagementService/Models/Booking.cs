@@ -32,7 +32,7 @@ namespace EventManagementService.Models
         /// <summary>
         /// Событие, к которому относится бронь
         /// </summary>
-        public Event? Event { get; set; }
+        required public Event Event { get; set; }
 
         public Booking()
         {
