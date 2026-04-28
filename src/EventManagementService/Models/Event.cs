@@ -35,7 +35,7 @@
         /// <summary>
         /// Текущее количество свободных мест.
         /// </summary>
-        public int AvailableSeats { get; set; }
+        required public int AvailableSeats { get; set; }
 
         /// <summary>
         /// Коллекция броней на событие

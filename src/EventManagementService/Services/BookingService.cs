@@ -33,7 +33,7 @@ namespace EventManagementService.Services
         /// </remarks>
         public async Task<BookingDtoResponse> CreateBookingAsync(Guid id, CancellationToken cancellationToken)
         {
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync();
 
             try
             {

@@ -1,27 +1,44 @@
-﻿using EventManagementService.Exceptions;
+﻿using EventManagementService.DataAccess;
+using EventManagementService.Dtos.EventDtos;
+using EventManagementService.Exceptions;
 using EventManagementService.Filters;
-using EventManagementService.Stores;
 using EventManagementService.Services;
 using FluentAssertions;
-using Moq;
-using EventManagementService.Dtos.EventDtos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventManagementService.Tests
 {
-    public class EventServiceTests
+    public class EventServiceTestInMemory
     {
+        private readonly ServiceProvider _serviceProvider;
+
+        public EventServiceTestInMemory()
+        {
+            var dbName = Guid.NewGuid().ToString();
+
+            var services = new ServiceCollection();
+
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase(dbName));
+
+            // Регистрируем сервисы
+            services.AddScoped<EventService>();
+            services.AddScoped<BookingService>();
+
+            _serviceProvider = services.BuildServiceProvider();
+        }
+
         #region Successful scenarios for EventService
 
         [Fact]
-        public async Task AddEvent_ShouldAddEvent_To_Collection()
+        public async Task AddEvent_ShouldAddEvent_To_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
-
-            var service = new EventService(mockEventStore.Object);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
             // Act (действие)
             var result = await service.AddEventAsync(
@@ -32,13 +49,15 @@ namespace EventManagementService.Tests
                     StartAt = DateTime.Now,
                     EndAt = DateTime.Now.AddDays(1),
                     TotalSeats = 1,
-                }
+                },
+
+                CancellationToken.None
             );
 
             // Assert (проверка)
-            // Проверяем, что в коллекцию добавлено событие, проверяем по уникальному Id
-            var addedEvent = mockEventStore.Object.Events.Single(e => e.EventId == result.EventId);
-            //Проверяем, что у добавленного соития совпадает Title
+            // Проверяем, что в базу данных добавлено событие, проверяем по уникальному Id
+            var addedEvent = await context.Events.SingleAsync(e => e.EventId == result.EventId);
+            //Проверяем, что у добавленного события совпадает Title
             addedEvent.Title.Should().Be("Test");
             //Проверяем, что у добавленного события совпадает Description
             addedEvent.Description.Should().Be("TestDescription");
@@ -47,45 +66,49 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public async Task GetEvents_ShouldReturns_AllEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_AllEvents_From_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
+
             var filter = new EventFilter();
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter);
+            var result = await service.GetEventsAsync(filter, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что метод GetEvents возвращает PaginatedResultDto
             // с внутренней коллекцией ResponseEventDtos с равным количеством событий
-            result.ResponseEventDtos.Should().HaveCount(events.Count());
+            result.ResponseEventDtos.Should().HaveCount(context.Events.Count());
         }
 
         [Fact]
         public async Task GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
         {
             // Arrange (подготовка)
-            
-            var mockEventStore = new Mock<IEventStore>();
-            var events = ServicesTestHelper.CreateFakeEvents();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
-            
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
+
             var filter = new EventFilter()
             {
                 Title = "Y",
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter);
+            var result = await service.GetEventsAsync(filter, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что коллекция событий не null, если нет совпадения по фильтру
@@ -95,36 +118,44 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public async Task GetEventById_ShouldReturn_Event_From_Colletion_ById()
+        public async Task GetEventById_ShouldReturn_Event_From_DB_ById()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
+            
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
 
-            var service = new EventService(mockEventStore.Object);
+            await context.SaveChangesAsync();
+
+            var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            var result = await service.GetEventByIdAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var result = await service.GetEventByIdAsync(eventId, CancellationToken.None);
 
             // Assert (проверка)
-            //Проверяем, что событие существует
+            // Проверяем, что событие существует
             result.Should().NotBeNull();
-            //Проверяем, что событие имеет правильный Id
-            result.EventId.Should().Be(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            // Проверяем, что событие имеет правильный Id
+            result.EventId.Should().Be(eventId);
         }
 
         [Fact]
-        public async Task ChangeEvent_ShouldUpdate_Event_In_Collection()
+        public async Task ChangeEvent_ShouldUpdate_Event_In_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper. CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
+
+            var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             var eventDtoRequest = new EventDtoRequest()
             {
@@ -135,11 +166,11 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            await service.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest);
+            await service.ChangeEventAsync(eventId, eventDtoRequest, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что у события по указанному Id были обновлены свойства
-            var updatedEvent = events.Single(e => e.EventId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var updatedEvent = context.Events.Single(e => e.EventId == eventId);
 
             updatedEvent.Title.Should().Be(eventDtoRequest.Title);
             updatedEvent.Description.Should().Be(eventDtoRequest.Description);
@@ -148,37 +179,44 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public async Task RemoveEvent_ShouldRemove_Event_From_Collection()
+        public async Task RemoveEvent_ShouldRemove_Event_From_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
+
+            var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            await service.RemoveEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
-            var removedEvent = events.FirstOrDefault(e => e.EventId == Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            await service.RemoveEventAsync(eventId, CancellationToken.None);
+
+            var removedEvent = context.Events.FirstOrDefault(e => e.EventId == eventId);
 
             // Assert (проверка)
             // Проверяем, что событие больше не существует
             removedEvent.Should().BeNull();
             // Проверяем, что в коллекции уменьшилось количество событий
-            events.Should().HaveCount(4);
+            context.Events.Should().HaveCount(5);
         }
 
         [Fact]
-        public async Task GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredEvents_ByTitle_From_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+            
+            await context.SaveChangesAsync();
 
             var title = "B";
 
@@ -188,7 +226,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter);
+            var result = await service.GetEventsAsync(filter, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что в коллекции содержаться только события после фильтрации по Title
@@ -196,15 +234,17 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public async Task GetEvents_ShouldReturns_FilteredEvents_ByDate_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredEvents_ByDate_From_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+            
+            await context.SaveChangesAsync();
 
             var fromDate = new DateTime(2026, 03, 12);
             var toDate = new DateTime(2026, 03, 15);
@@ -216,23 +256,27 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter);
+            var result = await service.GetEventsAsync(filter, CancellationToken.None);
 
             // Assert (проверка)
+            // Проверяем, что вообще что-то вернулось
+            result.ResponseEventDtos.Should().NotBeEmpty();
             // Проверяем, что в коллекции содержаться только события после фильтрации по StartAt и EndAt
             result.ResponseEventDtos.Should().OnlyContain(e => e.StartAt >= fromDate && e.EndAt <= toDate);
         }
 
         [Fact]
-        public async Task GetEvents_ShouldReturns_PaginatedEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_PaginatedEvents_From_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             var page = 2;
             var pageSize = 2;
@@ -244,7 +288,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter);
+            var result = await service.GetEventsAsync(filter, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что количество элементов соответствует количеству элементов на странице после пагинации
@@ -254,15 +298,17 @@ namespace EventManagementService.Tests
         }
 
         [Fact]
-        public async Task GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_Colletion()
+        public async Task GetEvents_ShouldReturns_FilteredAndPaginatedEvents_From_DB()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             var title = "B";
             var fromDate = new DateTime(2026, 03, 12);
@@ -280,7 +326,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter);
+            var result = await service.GetEventsAsync(filter, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что есть события в коллекции после фильтрации и пагинации
@@ -298,12 +344,14 @@ namespace EventManagementService.Tests
         public async Task GetEvents_ShouldReturnLastPage_WithRemainingItem()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
-            
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            using var scope = _serviceProvider.CreateScope();
 
-            var service = new EventService(mockEventStore.Object);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
+
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             var filer = new EventFilter()
             {
@@ -312,7 +360,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filer);
+            var result = await service.GetEventsAsync(filer, CancellationToken.None);
 
             // Assert (проверка)
             // Проверяем, что на последней странице содержится только одно событие с требуемым Id
@@ -327,30 +375,34 @@ namespace EventManagementService.Tests
         public async Task GetEventById_WithNonExistingId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            await service.Invoking(s => s.GetEventByIdAsync(new Guid()))
+            await service.Invoking(s => s.GetEventByIdAsync(new Guid(), CancellationToken.None))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
-        public void ChangeEvent_WithNonExistingId_ShouldThrow_NotFoundException()
+        public async Task ChangeEvent_WithNonExistingId_ShouldThrow_NotFoundExceptionAsync()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             var eventDtoRequest = new EventDtoRequest()
             {
@@ -362,20 +414,23 @@ namespace EventManagementService.Tests
 
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            service.Invoking(s => s.ChangeEvent(new Guid(), eventDtoRequest))
+            await service.Invoking(s => s.ChangeEventAsync(new Guid(), eventDtoRequest, CancellationToken.None))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
-        public void AddEvent_WithIncorrectData_Title_ShouldThrow_BadRequestException()
+        public async Task AddEvent_WithIncorrectData_Title_ShouldThrow_BadRequestException()
         {
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            // Arrange (подготовка)
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             var eventDtoRequest = new EventDtoRequest
             {
@@ -388,21 +443,23 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с некорректными входными данными по свойству Title
-            service.Invoking(s => s.AddEventAsync(eventDtoRequest))
+            await service.Invoking(s => s.AddEventAsync(eventDtoRequest, CancellationToken.None))
                 .Should()
                 .ThrowAsync<BadRequestException>();
         }
 
         [Fact]
-        public void ChangeEvent_WithIncorrectData_EndAtEarlierStartAt_ShouldThrow_BadRequestException()
+        public async Task ChangeEvent_WithIncorrectData_EndAtEarlierStartAt_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
-            var events = ServicesTestHelper.CreateFakeEvents();
-            var mockEventStore = new Mock<IEventStore>();
+            using var scope = _serviceProvider.CreateScope();
 
-            mockEventStore.Setup(e => e.Events).Returns(events);
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var service = scope.ServiceProvider.GetRequiredService<EventService>();
 
-            var service = new EventService(mockEventStore.Object);
+            context.Events.AddRange(ServicesTestHelper.CreateFakeEvents());
+
+            await context.SaveChangesAsync();
 
             var eventDtoRequest = new EventDtoRequest()
             {
@@ -415,7 +472,7 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с датой окончания события раньше даты начала события
-            service.Invoking(s => s.ChangeEvent(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest))
+            await service.Invoking(s => s.ChangeEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest, CancellationToken.None))
                 .Should()
                 .ThrowAsync<BadRequestException>();
         }

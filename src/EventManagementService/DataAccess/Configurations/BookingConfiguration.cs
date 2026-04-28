@@ -14,7 +14,7 @@ namespace EventManagementService.DataAccess.Configurations
             //Указание PK
             builder.HasKey(b => b.BookingId);
 
-            //Указание, что первичный ключь обязателен и генерируется в коде
+            //Указание, что первичный ключ обязателен и генерируется в коде
             builder.Property(b => b.BookingId)
                 .ValueGeneratedNever()
                 .IsRequired();
@@ -36,11 +36,11 @@ namespace EventManagementService.DataAccess.Configurations
             builder.Property(b => b.ProcessedAt)
                 .IsRequired(false);
 
-            //Связь с Event (многие к одному), с запретом на каскадное удаление
+            //Связь с Event (один ко многим) с каскадным удалением
             builder.HasOne(b => b.Event)
                 .WithMany(e => e.Bookings)
                 .HasForeignKey(b => b.EventId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

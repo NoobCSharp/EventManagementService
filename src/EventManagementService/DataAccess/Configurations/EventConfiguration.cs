@@ -14,7 +14,7 @@ namespace EventManagementService.DataAccess.Configurations
             //Указание PK
             builder.HasKey(e => e.EventId);
 
-            //Указание, что первичный ключь обязателен и генерируется в коде
+            //Указание, что первичный ключ обязателен и генерируется в коде
             builder.Property(e => e.EventId)
                 .ValueGeneratedNever()
                 .IsRequired();
@@ -33,23 +33,17 @@ namespace EventManagementService.DataAccess.Configurations
             builder.Property(e => e.StartAt)
                 .IsRequired();
 
-            //Указание необязательного поля даты окончания события
+            //Указание обязательного поля даты окончания события
             builder.Property(e => e.EndAt)
-                .IsRequired(false);
+                .IsRequired();
 
             //Указание обязательного поля общего количества мест на событие
             builder.Property(e => e.TotalSeats)
                 .IsRequired();
 
             //Указание необязательного поля текущего количества мест на событие
-            builder.Property(e => e.EndAt)
-                .IsRequired(false);
-
-            //Связь с Booking (один ко многим) с каскадным удалением
-            builder.HasMany(e => e.Bookings)
-                .WithOne()
-                .HasForeignKey("EventId")
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.Property(e => e.AvailableSeats)
+                .IsRequired();
         }
     }
 }
