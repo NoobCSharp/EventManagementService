@@ -31,8 +31,10 @@ namespace EventManagementService.BackgroundServices
 
                     var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+                    // Получаем список броней со статусом "Pending" для обработки, ограничивая количество обрабатываемых броней за итерацию, чтобы избежать перегрузки системы
                     var pendingBookings = await appDbContext.Bookings
                         .Where(b => b.Status == BookingStatus.Pending)
+                        .Take(50)
                         .ToListAsync(cancellationToken);
 
                     // Обрабатываем каждую бронь параллельно по Id
@@ -62,8 +64,6 @@ namespace EventManagementService.BackgroundServices
         {
             DateTime processedAt = DateTime.UtcNow;
             Booking? booking = null;
-
-            await Task.Delay(1000, cancellationToken);
 
             using var scope = _factory.CreateScope();
             var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
