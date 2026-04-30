@@ -75,7 +75,7 @@ namespace EventManagementService.BackgroundServices
                 if (booking is null)
                 {
                     _logger.LogWarning(
-                        "Бронь {BookingId} не найдена",
+                        "Бронь {BookingId} не найдена!",
                         bookingId);
 
                     return;
@@ -86,7 +86,7 @@ namespace EventManagementService.BackgroundServices
                 if (@event is null)
                 {
                     _logger.LogWarning(
-                        "Событие для брони {BookingId} не найдено",
+                        "Событие для брони {BookingId} не найдено!",
                         bookingId);
                     
                     // Если событие не найдено, отклоняем бронь, так как она не может быть обработана без связанного события
@@ -110,7 +110,7 @@ namespace EventManagementService.BackgroundServices
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Обработка брони {BookingId} отменена", bookingId);
+                _logger.LogInformation("Обработка брони {BookingId} отменена!", bookingId);
             }
             catch (Exception)
             {
@@ -135,13 +135,13 @@ namespace EventManagementService.BackgroundServices
                         // Сохраняем изменения в базе данных
                         await appDbContext.SaveChangesAsync(cancellationToken);
 
-                        _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена", bookingId);
+                        _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена!", bookingId);
                     }
 
                 }
                 catch (Exception)
                 {
-                    _logger.LogError("Ошибка при отклонении брони {BookingId} после неудачной обработки", bookingId);
+                    _logger.LogError("Ошибка при отклонении брони {BookingId} после неудачной обработки!", bookingId);
                 }
             }
         }
