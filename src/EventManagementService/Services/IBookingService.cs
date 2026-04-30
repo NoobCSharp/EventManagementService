@@ -13,7 +13,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект брони.
         /// </returns>
-        Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken);
+        Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Получает бронь по идентификатору
@@ -24,6 +24,6 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект брони из коллекции.
         /// </returns>
-        Task<BookingDtoResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken);
+        Task<BookingDtoResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default);
     }
 }

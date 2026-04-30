@@ -17,7 +17,7 @@ namespace EventManagementService.Services
             _appDbContext = appDbContext;
         }
 
-        public async Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken)
+        public async Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default)
         {
             var page = Math.Max(1, eventFilter.Page);
             var pageSize = Math.Max(1, eventFilter.PageSize);
@@ -44,9 +44,9 @@ namespace EventManagementService.Services
             };
         }
 
-        public async Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            Event? existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
+            var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
@@ -54,7 +54,7 @@ namespace EventManagementService.Services
             return EventMapper.EventToResponse(existingEvent);
         }
 
-        public async Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto, CancellationToken cancellationToken)
+        public async Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(requestEventDto.Title))
                 throw new BadRequestException("Название события обязательно к заполнению!");
@@ -76,14 +76,13 @@ namespace EventManagementService.Services
                 AvailableSeats = requestEventDto.TotalSeats
             };
 
-            _appDbContext.Events.Add(@event);
-
+            await _appDbContext.Events.AddAsync(@event, cancellationToken);
             await _appDbContext.SaveChangesAsync(cancellationToken);
 
             return EventMapper.EventToResponse(@event);
         }
 
-        public async Task ChangeEventAsync(Guid id, EventDtoRequest requestEventDto, CancellationToken cancellationToken)
+        public async Task ChangeEventAsync(Guid id, EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
         {
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
@@ -102,7 +101,7 @@ namespace EventManagementService.Services
             await _appDbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task RemoveEventAsync(Guid id, CancellationToken cancellationToken)
+        public async Task RemoveEventAsync(Guid id, CancellationToken cancellationToken = default)
         { 
             var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
 

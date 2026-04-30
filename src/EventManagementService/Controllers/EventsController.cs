@@ -24,7 +24,7 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <returns>Объект EventDtoPaginatedResponse сформированный после фильтрации и пагинации.</returns>
         [HttpGet]
-        public async Task<ActionResult> GetAllEvents([FromQuery] EventFilter eventFilter, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetAllEvents([FromQuery] EventFilter eventFilter, CancellationToken cancellationToken = default)
         {
             var eventDtoPaginatedResponse = await _eventService.GetEventsAsync(eventFilter, cancellationToken);
             return Ok(eventDtoPaginatedResponse);
@@ -36,7 +36,7 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <returns>Объект EventDtoResponse.</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult> GetEventById(Guid id, CancellationToken cancellationToken)
+        public async Task<ActionResult> GetEventById(Guid id, CancellationToken cancellationToken = default)
         {
             var eventDtoResponse = await _eventService.GetEventByIdAsync(id, cancellationToken);
             return Ok(eventDtoResponse);
@@ -50,7 +50,7 @@ namespace EventManagementService.Controllers
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         [HttpPost]
         [ProducesResponseType(typeof(EventDtoResponse), StatusCodes.Status201Created)]
-        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest requestEventDto, CancellationToken cancellationToken)
+        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
         {          
             var eventDtoResponse = await _eventService.AddEventAsync(requestEventDto, cancellationToken);
 
@@ -66,7 +66,7 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <param name="eventDtoRequest">Объект EventDtoRequest с новыми данными для обновления.</param>
         [HttpPut("{id}")]
-        public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken)
+        public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {
             await _eventService.ChangeEventAsync(id, eventDtoRequest, cancellationToken);
             return NoContent();
@@ -77,7 +77,7 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken cancellationToken = default)
         {
             await _eventService.RemoveEventAsync(id, cancellationToken);
             return NoContent();

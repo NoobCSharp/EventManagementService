@@ -35,15 +35,15 @@ namespace EventManagementService
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString)                      // Обязательно
-                       .LogTo(Console.WriteLine, LogLevel.Information)   // Удобно в разработке
-                       .EnableDetailedErrors()                           // Удобно в разработке
-                       .EnableSensitiveDataLogging());                   // Осторожно! Только для dev 
-
-
             //builder.Services.AddDbContext<AppDbContext>(options =>
-            //    options.UseNpgsql(connectionString));
+            //    options.UseNpgsql(connectionString)                      // Обязательно
+            //           .LogTo(Console.WriteLine, LogLevel.Information)   // Удобно в разработке
+            //           .EnableDetailedErrors()                           // Удобно в разработке
+            //           .EnableSensitiveDataLogging());                   // Осторожно! Только для dev 
+
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseNpgsql(connectionString));
 
             var app = builder.Build();
 

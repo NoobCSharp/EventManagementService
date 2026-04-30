@@ -31,7 +31,7 @@ namespace EventManagementService.Services
         /// Если событие не найдено, бросает исключение NotFoundException.
         /// Если нет доступных мест на событие, бросает исключение NoAvailableSeatsException
         /// </remarks>
-        public async Task<BookingDtoResponse> CreateBookingAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<BookingDtoResponse> CreateBookingAsync(Guid id, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync();
 
@@ -56,8 +56,7 @@ namespace EventManagementService.Services
                     Event = existingEvent
                 };
 
-                _appDbContext.Bookings.Add(booking);
-
+                await _appDbContext.Bookings.AddAsync(booking, cancellationToken);
                 await _appDbContext.SaveChangesAsync(cancellationToken);
 
                 return BookingMapper.BookingToResponse(booking);
@@ -78,7 +77,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект брони из коллекции.
         /// </returns>
-        public async Task<BookingDtoResponse> GetBookingByIdAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<BookingDtoResponse> GetBookingByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             var existingBooking = await _appDbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == id, cancellationToken);
 

@@ -13,7 +13,7 @@ namespace EventManagementService.Services
         /// Коллекция отфильтрованных событий.
         /// Если события отсутствуют, возвращается пустая коллекция.
         /// </returns>
-        Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken);
+        Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Получает событие по Id.
@@ -25,7 +25,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект события с указанным Id.
         /// </returns>
-        Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken);
+        Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Добавляет событие в коллекцию событий.
@@ -36,7 +36,7 @@ namespace EventManagementService.Services
         /// <returns>
         /// Объект нового события.
         /// </returns>
-        Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto, CancellationToken cancellationToken);
+        Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Вносит изменение в существующее событие.
@@ -48,7 +48,7 @@ namespace EventManagementService.Services
         /// <param name="requestEventDto">
         /// Объект события с новыми данными.
         /// </param>
-        Task ChangeEventAsync(Guid id, EventDtoRequest requestEventDto, CancellationToken cancellationToken);
+        Task ChangeEventAsync(Guid id, EventDtoRequest requestEventDto, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Удаляет событие по Id из коллекции событий.

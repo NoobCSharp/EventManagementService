@@ -49,9 +49,7 @@ namespace EventManagementService.Tests
                     StartAt = DateTime.Now,
                     EndAt = DateTime.Now.AddDays(1),
                     TotalSeats = 1,
-                },
-
-                CancellationToken.None
+                }
             );
 
             // Assert (проверка)
@@ -81,7 +79,7 @@ namespace EventManagementService.Tests
             var filter = new EventFilter();
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter, CancellationToken.None);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что метод GetEvents возвращает PaginatedResultDto
@@ -108,7 +106,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter, CancellationToken.None);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что коллекция событий не null, если нет совпадения по фильтру
@@ -133,7 +131,7 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            var result = await service.GetEventByIdAsync(eventId, CancellationToken.None);
+            var result = await service.GetEventByIdAsync(eventId);
 
             // Assert (проверка)
             // Проверяем, что событие существует
@@ -166,7 +164,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            await service.ChangeEventAsync(eventId, eventDtoRequest, CancellationToken.None);
+            await service.ChangeEventAsync(eventId, eventDtoRequest);
 
             // Assert (проверка)
             // Проверяем, что у события по указанному Id были обновлены свойства
@@ -194,7 +192,7 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            await service.RemoveEventAsync(eventId, CancellationToken.None);
+            await service.RemoveEventAsync(eventId);
 
             var removedEvent = context.Events.FirstOrDefault(e => e.EventId == eventId);
 
@@ -226,7 +224,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter, CancellationToken.None);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что в коллекции содержаться только события после фильтрации по Title
@@ -256,7 +254,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter, CancellationToken.None);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что вообще что-то вернулось
@@ -288,7 +286,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter, CancellationToken.None);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что количество элементов соответствует количеству элементов на странице после пагинации
@@ -326,7 +324,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filter, CancellationToken.None);
+            var result = await service.GetEventsAsync(filter);
 
             // Assert (проверка)
             // Проверяем, что есть события в коллекции после фильтрации и пагинации
@@ -360,7 +358,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            var result = await service.GetEventsAsync(filer, CancellationToken.None);
+            var result = await service.GetEventsAsync(filer);
 
             // Assert (проверка)
             // Проверяем, что на последней странице содержится только одно событие с требуемым Id
@@ -386,7 +384,7 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            await service.Invoking(s => s.GetEventByIdAsync(new Guid(), CancellationToken.None))
+            await service.Invoking(s => s.GetEventByIdAsync(new Guid()))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
@@ -414,7 +412,7 @@ namespace EventManagementService.Tests
 
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            await service.Invoking(s => s.ChangeEventAsync(new Guid(), eventDtoRequest, CancellationToken.None))
+            await service.Invoking(s => s.ChangeEventAsync(new Guid(), eventDtoRequest))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
@@ -443,7 +441,7 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с некорректными входными данными по свойству Title
-            await service.Invoking(s => s.AddEventAsync(eventDtoRequest, CancellationToken.None))
+            await service.Invoking(s => s.AddEventAsync(eventDtoRequest))
                 .Should()
                 .ThrowAsync<BadRequestException>();
         }
@@ -472,7 +470,7 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с датой окончания события раньше даты начала события
-            await service.Invoking(s => s.ChangeEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest, CancellationToken.None))
+            await service.Invoking(s => s.ChangeEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest))
                 .Should()
                 .ThrowAsync<BadRequestException>();
         }

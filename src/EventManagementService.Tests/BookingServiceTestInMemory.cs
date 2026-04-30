@@ -7,7 +7,6 @@ using EventManagementService.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EventManagementService.Tests
@@ -55,7 +54,7 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            var result = await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+            var result = await bookingService.CreateBookingAsync(eventId);
 
             // Assert (проверка)
             // Проверяем, что в коллекцию добавлена одна бронь, проверяем по уникальному Id
@@ -87,8 +86,8 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act (действие)
-            var bookingFirst = await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
-            var bookingLast = await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+            var bookingFirst = await bookingService.CreateBookingAsync(eventId);
+            var bookingLast = await bookingService.CreateBookingAsync(eventId);
 
             // Assert (проверка)
             // Проверяем, что добавились только две брони, они имеют статус Pending,
@@ -118,8 +117,8 @@ namespace EventManagementService.Tests
             await context.SaveChangesAsync();
 
             // Act (действие)
-            var booking = await bookingService.CreateBookingAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), CancellationToken.None);
-            var result = await bookingService.GetBookingByIdAsync(booking.BookingId, CancellationToken.None);
+            var booking = await bookingService.CreateBookingAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
+            var result = await bookingService.GetBookingByIdAsync(booking.BookingId);
             
             // Assert (проверка)
             // Проверяем, что бронь существует
@@ -148,7 +147,7 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act
-            await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+            await bookingService.CreateBookingAsync(eventId);
 
             // Assert
             // Проверяем, что бронь успешно добавлена в базу данных и связана с правильным событием по Id
@@ -184,7 +183,7 @@ namespace EventManagementService.Tests
                     using var scope = _serviceProvider.CreateScope();
                     var bookingService = scope.ServiceProvider.GetRequiredService<BookingService>();
 
-                    return await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+                    return await bookingService.CreateBookingAsync(eventId);
                 }));
 
             var results = await Task.WhenAll(tasks);
@@ -227,7 +226,7 @@ namespace EventManagementService.Tests
 
                     try
                     {
-                        await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+                        await bookingService.CreateBookingAsync(eventId);
                         return (Success: true, Exception: (Exception?)null);
                     }
                     catch (Exception ex)
@@ -263,7 +262,7 @@ namespace EventManagementService.Tests
             var processedAt = DateTime.UtcNow;
 
             // Act
-            var bookingDto = await bookingService.CreateBookingAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), CancellationToken.None);
+            var bookingDto = await bookingService.CreateBookingAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
             var booking = context.Bookings.Single(b => b.BookingId == bookingDto.BookingId);
             booking.Confirm(processedAt);
 
@@ -293,7 +292,7 @@ namespace EventManagementService.Tests
             var processedAt = DateTime.UtcNow;
 
             // Act
-            var bookingDto = await bookingService.CreateBookingAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), CancellationToken.None);
+            var bookingDto = await bookingService.CreateBookingAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"));
             var booking = context.Bookings.Single(b => b.BookingId == bookingDto.BookingId);
             booking.Reject(processedAt);
 
@@ -324,7 +323,7 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("3F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act
-            var bookingDto = await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+            var bookingDto = await bookingService.CreateBookingAsync(eventId);
             var booking = context.Bookings.Single(b => b.BookingId == bookingDto.BookingId);
 
             booking.Reject(DateTime.UtcNow);
@@ -357,13 +356,13 @@ namespace EventManagementService.Tests
             var eventId = Guid.Parse("5F9619FF-8B86-D011-B42D-00C04FC964FF");
 
             // Act
-            var firstBookingDto = await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+            var firstBookingDto = await bookingService.CreateBookingAsync(eventId);
             var firstBooking = context.Bookings.Single(b => b.BookingId == firstBookingDto.BookingId);
 
             firstBooking.Reject(DateTime.UtcNow);
             context.Events.Single(e => e.EventId == eventId).ReleaseSeats();
 
-            var secondBookingDto = await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+            var secondBookingDto = await bookingService.CreateBookingAsync(eventId);
             var secondBooking = context.Bookings.Single(b => b.BookingId == secondBookingDto.BookingId);
 
             // Assert
@@ -404,7 +403,7 @@ namespace EventManagementService.Tests
 
                     try
                     {
-                        await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+                        await bookingService.CreateBookingAsync(eventId);
                         return (Success: true, Exception: (Exception?)null);
                     }
                     catch (Exception ex)
@@ -453,7 +452,7 @@ namespace EventManagementService.Tests
                     using var scope = _serviceProvider.CreateScope();
                     var bookingService = scope.ServiceProvider.GetRequiredService<BookingService>();
 
-                    return await bookingService.CreateBookingAsync(eventId, CancellationToken.None);
+                    return await bookingService.CreateBookingAsync(eventId);
                 }));
 
             var results = await Task.WhenAll(tasks);
@@ -508,7 +507,7 @@ namespace EventManagementService.Tests
             var bookingProcessingService = new BookingProcessingService(factory, NullLogger<BookingProcessingService>.Instance);
 
             // Act
-            await bookingProcessingService.ProcessBookingAsync(booking.BookingId, CancellationToken.None);
+            await bookingProcessingService.ProcessBookingAsync(booking.BookingId);
 
             // Assert
             var updatedBooking = await context.Bookings.AsNoTracking().FirstAsync();
@@ -540,7 +539,7 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            await bookingService.Invoking(s => s.GetBookingByIdAsync(Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF"), CancellationToken.None))
+            await bookingService.Invoking(s => s.GetBookingByIdAsync(Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF")))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
@@ -565,7 +564,7 @@ namespace EventManagementService.Tests
 
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException для несуществующего события
-            await bookingService.Invoking(s => s.CreateBookingAsync(Guid.Parse("EAD0E512-87E4-4825-98CF-8331D34C114F"), CancellationToken.None))
+            await bookingService.Invoking(s => s.CreateBookingAsync(Guid.Parse("EAD0E512-87E4-4825-98CF-8331D34C114F")))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
@@ -593,7 +592,7 @@ namespace EventManagementService.Tests
             // Assert (проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NoAvailableSeatsException
             // при попытке создать бронь для события, у которого нет доступных мест
-            await bookingService.Invoking(s => s.CreateBookingAsync(eventId, CancellationToken.None))
+            await bookingService.Invoking(s => s.CreateBookingAsync(eventId))
                 .Should()
                 .ThrowAsync<NoAvailableSeatsException>();
         }
