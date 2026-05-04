@@ -7,7 +7,7 @@ namespace EventManagementService.Dtos.BookingDtos
         /// <summary>
         /// Уникальный идентификатор брони
         /// </summary>
-        public Guid Id { get; init; }
+        public Guid BookingId { get; init; }
 
         /// <summary>
         /// Идентификатор события, к которому относится бронь

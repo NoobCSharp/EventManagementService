@@ -35,7 +35,16 @@
         /// <summary>
         /// Текущее количество свободных мест.
         /// </summary>
-        public int AvailableSeats { get; set; }
+        required public int AvailableSeats { get; set; }
+
+        /// <summary>
+        /// Коллекция броней на событие
+        /// </summary>
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+
+        public Event()
+        {
+        }
 
         /// <summary>
         /// Пытается зарезервировать указанное количество мест для события.
@@ -58,6 +67,9 @@
         /// </remarks>
         public bool TryReserveSeats(int count = 1)
         {
+            if (count <= 0)
+                throw new ArgumentException("Количество мест должно быть положительным!", nameof(count));
+
             if (AvailableSeats >= count)
             {
                 AvailableSeats -= count;

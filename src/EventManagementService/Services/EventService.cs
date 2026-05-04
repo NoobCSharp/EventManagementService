@@ -1,69 +1,60 @@
-﻿using EventManagementService.Dtos.EventDtos;
+﻿using EventManagementService.DataAccess;
+using EventManagementService.Dtos.EventDtos;
 using EventManagementService.Exceptions;
 using EventManagementService.Filters;
 using EventManagementService.Mappers;
 using EventManagementService.Models;
-using EventManagementService.Stores;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventManagementService.Services
 {
     public class EventService : IEventService
     {
-        private readonly IEventStore _eventRepository;
+        private readonly AppDbContext _appDbContext;
 
-        public EventService(IEventStore eventRepository)
+        public EventService(AppDbContext appDbContext)
         {
-            _eventRepository = eventRepository;
+            _appDbContext = appDbContext;
         }
 
-        public Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter)
+        public async Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default)
         {
-            var events = _eventRepository.Events.AsQueryable();
+            var page = Math.Max(1, eventFilter.Page);
+            var pageSize = Math.Max(1, eventFilter.PageSize);
 
-            //TODO Лучше вынести в отдельный класс фильтра EventFilter
-            //Коллекция событий после фильтрации
-            var filtered = events.Where(e =>
-                (string.IsNullOrWhiteSpace(eventFilter.Title) || e.Title.Contains(eventFilter.Title, StringComparison.OrdinalIgnoreCase)) &&
+            var query = _appDbContext.Events.Where(e =>
+                (string.IsNullOrWhiteSpace(eventFilter.Title) || e.Title.Contains(eventFilter.Title)) &&
                 (!eventFilter.From.HasValue || e.StartAt >= eventFilter.From) &&
-                (!eventFilter.To.HasValue || e.EndAt <= eventFilter.To)
-            );
+                (!eventFilter.To.HasValue || e.EndAt <= eventFilter.To));
 
-            //Количество элементов после фильтрации
-            int eventCount = filtered.Count();
+            var total = await query.CountAsync(cancellationToken);
 
-            //Коллекция событий после пагинации
-            var eventsOnPage = filtered.Skip((eventFilter.Page - 1) * eventFilter.PageSize)
-                .Take(eventFilter.PageSize);
+            var entities = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize).ToListAsync(cancellationToken);
 
-            //Количество элементов после пагинации
-            int eventsOnPageCount = eventsOnPage.Count();
+            var items = entities.Select(EventMapper.EventToResponse).ToList();
 
-            var responseEventDtos = eventsOnPage.Select(EventMapper.EventToResponse);
-
-            var eventDtoPaginatedResponse = new EventDtoPaginatedResponse()
+            return new EventDtoPaginatedResponse
             {
-                TotalEventsCount = eventCount,
-                ResponseEventDtos = responseEventDtos,
-                NumberEventsOnCurrentPage = eventsOnPageCount,
-                CurrentPage = eventFilter.Page,
+                TotalEventsCount = total,
+                ResponseEventDtos = items,
+                NumberEventsOnCurrentPage = items.Count,
+                CurrentPage = page
             };
-
-            return Task.FromResult(eventDtoPaginatedResponse);
         }
 
-        public Task<EventDtoResponse> GetEventByIdAsync(Guid id)
+        public async Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            Event existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EventId == id)!;
+            var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
 
-            var eventDtoResponse = EventMapper.EventToResponse(existingEvent);
-
-            return Task.FromResult(eventDtoResponse);
+            return EventMapper.EventToResponse(existingEvent);
         }
 
-        public Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto)
+        public async Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(requestEventDto.Title))
                 throw new BadRequestException("Название события обязательно к заполнению!");
@@ -85,20 +76,19 @@ namespace EventManagementService.Services
                 AvailableSeats = requestEventDto.TotalSeats
             };
 
-            _eventRepository.Events.Add(@event);
+            await _appDbContext.Events.AddAsync(@event, cancellationToken);
+            await _appDbContext.SaveChangesAsync(cancellationToken);
 
-            var eventDtoResponse =  EventMapper.EventToResponse(@event);
-
-            return Task.FromResult(eventDtoResponse);
+            return EventMapper.EventToResponse(@event);
         }
 
-        public Task ChangeEvent(Guid id, EventDtoRequest requestEventDto)
+        public async Task ChangeEventAsync(Guid id, EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
         {
             if (requestEventDto.EndAt <= requestEventDto.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
-            var existingEvent = _eventRepository.Events
-                .FirstOrDefault(e => e.EventId == id);
+            var existingEvent = await _appDbContext.Events
+                .FirstOrDefaultAsync(e => e.EventId == id);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
@@ -108,19 +98,19 @@ namespace EventManagementService.Services
             existingEvent.StartAt = requestEventDto.StartAt;
             existingEvent.EndAt = requestEventDto.EndAt;
 
-            return Task.CompletedTask;
+            await _appDbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public Task RemoveEventAsync(Guid id)
+        public async Task RemoveEventAsync(Guid id, CancellationToken cancellationToken = default)
         { 
-            var existingEvent = _eventRepository.Events.FirstOrDefault(e => e.EventId == id);
+            var existingEvent = await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
 
             if (existingEvent is null)
                 throw new NotFoundException("Событие по указанному Id не найдено!");
-            
-            _eventRepository.Events.Remove(existingEvent);
 
-            return Task.CompletedTask;
+            _appDbContext.Events.Remove(existingEvent);
+
+            await _appDbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
