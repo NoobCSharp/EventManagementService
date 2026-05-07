@@ -1,6 +1,4 @@
-﻿using EventManagementService.DataAccess;
-using EventManagementService.Enums;
-using Microsoft.EntityFrameworkCore;
+﻿using EventManagementService.Repositories;
 
 namespace EventManagementService.BackgroundServices
 {
@@ -18,9 +16,9 @@ namespace EventManagementService.BackgroundServices
         /// <summary>
         /// Выполняет основную логику фоновой службы обработки броней.
         /// </summary>
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken = default)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Сервис обработки броней запущен - {Time}", DateTime.Now);
+            _logger.LogInformation("Сервис обработки броней запущен - {Time}.", DateTime.Now);
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -28,16 +26,14 @@ namespace EventManagementService.BackgroundServices
                 {
                     using var scope = _factory.CreateScope();
 
-                    var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    var repository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
 
-                    // Получаем список броней со статусом "Pending" для обработки, ограничивая количество обрабатываемых броней за итерацию, чтобы избежать перегрузки системы
-                    var pendingBookings = await appDbContext.Bookings
-                        .Where(b => b.Status == BookingStatus.Pending)
-                        .Take(50)
-                        .ToListAsync(cancellationToken);
+                    // Получаем список броней со статусом "Pending" для обработки,
+                    var pendingBookings = await repository.GetPendingBookingsAsync(cancellationToken);
 
-                    // Обрабатываем каждую бронь параллельно по Id
-                    var tasks = pendingBookings.Select(booking =>
+                    // Обрабатываем каждую бронь параллельно по Id,
+                    // ограничивая количество обрабатываемых броней за итерацию, чтобы избежать перегрузки системы
+                    var tasks = pendingBookings.Take(50).Select(booking =>
                         ProcessBookingAsync(booking.BookingId, cancellationToken));
 
                     await Task.WhenAll(tasks);
@@ -55,7 +51,7 @@ namespace EventManagementService.BackgroundServices
                 await Task.Delay(5000, cancellationToken);
             }
 
-            _logger.LogInformation("Сервис управления обработкой броней остановлен");
+            _logger.LogInformation("Сервис управления обработкой броней остановлен.");
         }
 
         public async Task ProcessBookingAsync(Guid bookingId, CancellationToken cancellationToken = default)
@@ -67,10 +63,13 @@ namespace EventManagementService.BackgroundServices
                 await Task.Delay(2000, cancellationToken);
 
                 using var scope = _factory.CreateScope();
-                var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+                var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
                 // Загружаем бронь из базы данных
-                var booking = await appDbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == bookingId, cancellationToken);
+                var booking = await bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
 
                 if (booking is null)
                 {
@@ -81,7 +80,7 @@ namespace EventManagementService.BackgroundServices
                     return;
                 }
 
-                var @event = await appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == booking.EventId, cancellationToken);
+                var @event = await eventRepository.GetEventByIdAsync(booking.EventId, cancellationToken);
 
                 if (@event is null)
                 {
@@ -92,7 +91,7 @@ namespace EventManagementService.BackgroundServices
                     // Если событие не найдено, отклоняем бронь, так как она не может быть обработана без связанного события
                     booking.Reject(processedAt);
 
-                    await appDbContext.SaveChangesAsync(cancellationToken);
+                    await unitOfWork.SaveChangesAsync(cancellationToken);
 
                     return;
                 }
@@ -101,10 +100,10 @@ namespace EventManagementService.BackgroundServices
                 booking.Confirm(processedAt);
 
                 // Сохраняем изменения в базе данных
-                await appDbContext.SaveChangesAsync(cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
-                    "Бронь {BookingId} обработана и подтверждена",
+                    "Бронь {BookingId} обработана и подтверждена.",
                     booking.BookingId);
 
             }
@@ -112,32 +111,36 @@ namespace EventManagementService.BackgroundServices
             {
                 _logger.LogInformation("Обработка брони {BookingId} отменена!", bookingId);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Ошибка при обработке брони {BookingId}!", bookingId);
+
                 try
                 {
                     using var scope = _factory.CreateScope();
-                    var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                    var booking = await appDbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == bookingId, cancellationToken);
+                    var bookingRepository = scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+                    var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+                    var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+                    var booking = await bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
 
                     if (booking != null)
                     {
                         // В случае ошибки при обработке брони, устанавливаем статус "Rejected"
                         booking.Reject(processedAt);
 
-                        var @event = await appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == booking.EventId, cancellationToken);
+                        var @event = await eventRepository.GetEventByIdAsync(booking.EventId, cancellationToken);
 
                         // Если произошла ошибка, освобождаем зарезервированные места, чтобы они снова стали доступными для других броней
                         if (@event != null)
                             @event.ReleaseSeats();
 
                         // Сохраняем изменения в базе данных
-                        await appDbContext.SaveChangesAsync(cancellationToken);
+                        await unitOfWork.SaveChangesAsync(cancellationToken);
 
                         _logger.LogError("Ошибка при обработке брони {BookingId}. Бронь отклонена!", bookingId);
                     }
-
                 }
                 catch (Exception)
                 {

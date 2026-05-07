@@ -12,9 +12,9 @@ namespace EventManagementService.Controllers
     [Route("events")]
     public class EventsController : ControllerBase
     {
-        private readonly IEventService _eventService;
+        private readonly EventService _eventService;
         
-        public EventsController(IEventService eventService)
+        public EventsController(EventService eventService)
         {
             _eventService = eventService;
         }
@@ -68,7 +68,7 @@ namespace EventManagementService.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {
-            await _eventService.ChangeEventAsync(id, eventDtoRequest, cancellationToken);
+            await _eventService.UpdateEventAsync(id, eventDtoRequest, cancellationToken);
             return NoContent();
         }
 

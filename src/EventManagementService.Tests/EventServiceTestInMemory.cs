@@ -164,7 +164,7 @@ namespace EventManagementService.Tests
             };
 
             // Act (действие)
-            await service.ChangeEventAsync(eventId, eventDtoRequest);
+            await service.UpdateEventAsync(eventId, eventDtoRequest);
 
             // Assert (проверка)
             // Проверяем, что у события по указанному Id были обновлены свойства
@@ -412,7 +412,7 @@ namespace EventManagementService.Tests
 
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение NotFoundException
-            await service.Invoking(s => s.ChangeEventAsync(new Guid(), eventDtoRequest))
+            await service.Invoking(s => s.UpdateEventAsync(new Guid(), eventDtoRequest))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
@@ -470,7 +470,7 @@ namespace EventManagementService.Tests
             // Assert(проверка)
             // Проверяем, что выбрасывается ожидаемое исключение BadRequestException
             // с датой окончания события раньше даты начала события
-            await service.Invoking(s => s.ChangeEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest))
+            await service.Invoking(s => s.UpdateEventAsync(Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF"), eventDtoRequest))
                 .Should()
                 .ThrowAsync<BadRequestException>();
         }

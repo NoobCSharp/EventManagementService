@@ -1,6 +1,7 @@
 ﻿using EventManagementService.BackgroundServices;
 using EventManagementService.DataAccess;
 using EventManagementService.Middlewares.ExceptionMiddleware;
+using EventManagementService.Repositories;
 using EventManagementService.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -17,8 +18,12 @@ namespace EventManagementService
             builder.Services.AddSwaggerGen();
             builder.Services.AddControllers();
 
-            builder.Services.AddScoped<IEventService, EventService>();
-            builder.Services.AddScoped<IBookingService, BookingService>();
+            builder.Services.AddScoped<EventService>();
+            builder.Services.AddScoped<BookingService>();
+
+            builder.Services.AddScoped<IEventRepository, EventRepository>();
+            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+            builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>());
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
