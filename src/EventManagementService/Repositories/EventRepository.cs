@@ -1,7 +1,6 @@
 ﻿using EventManagementService.DataAccess;
-using EventManagementService.Dtos.EventDtos;
+using EventManagementService.Entities;
 using EventManagementService.Filters;
-using EventManagementService.Mappers;
 using EventManagementService.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,45 +20,45 @@ namespace EventManagementService.Repositories
             await _appDbContext.Events.AddAsync(@event, cancellationToken);
         }
 
-        public async Task UpdateEventAsync(Event @event, CancellationToken cancellationToken = default)
-        {
-            _appDbContext.Update(@event);
-        }
-
         public async Task<Event?> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
         }
 
-        public async Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default)
+        public async Task<PagedResult<Event>> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default)
         {
             var page = Math.Max(1, eventFilter.Page);
             var pageSize = Math.Max(1, eventFilter.PageSize);
 
-            var query = _appDbContext.Events.AsNoTracking().Where(e =>
-                (string.IsNullOrWhiteSpace(eventFilter.Title) || e.Title.Contains(eventFilter.Title)) &&
-                (!eventFilter.From.HasValue || e.StartAt >= eventFilter.From) &&
-                (!eventFilter.To.HasValue || e.EndAt <= eventFilter.To));
+            var query = _appDbContext.Events.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(eventFilter.Title))
+                query = query.Where(e => e.Title.Contains(eventFilter.Title));
+
+            if (eventFilter.From.HasValue)
+                query = query.Where(e => e.StartAt >= eventFilter.From);
+
+            if (eventFilter.To.HasValue)
+                query = query.Where(e => e.EndAt <= eventFilter.To);
 
             var total = await query.CountAsync(cancellationToken);
 
-            var events = await query
+            var items = await query
+                .OrderBy(e => e.StartAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync(cancellationToken);
 
-            var items = events.Select(EventMapper.EventToResponse).ToList();
-
-            return new EventDtoPaginatedResponse
+            return new PagedResult<Event>
             {
-                TotalEventsCount = total,
-                ResponseEventDtos = items,
-                NumberEventsOnCurrentPage = items.Count,
-                CurrentPage = page
+                Page = page,
+                PageSize = items.Count,
+                TotalCount = total,
+                Items = items
             };
         }
 
-        public async Task RemoveEventAsync(Event @event, CancellationToken cancellationToken = default)
+        public void RemoveEvent(Event @event)
         {
             _appDbContext.Events.Remove(@event);
         }

@@ -1,4 +1,4 @@
-﻿using EventManagementService.Dtos.EventDtos;
+﻿using EventManagementService.Entities;
 using EventManagementService.Filters;
 using EventManagementService.Models;
 
@@ -7,14 +7,15 @@ namespace EventManagementService.Repositories
     public interface IEventRepository
     {
         /// <summary>
-        /// Получает коллекцию отфильтрованных событий.
+        /// Возвращает постраничный результат событий, удовлетворяющих заданному фильтру.
         /// </summary>
-        /// <param name="eventFilter">Фильтр событий</param>
+        /// <param name="filter">
+        /// Критерии фильтрации и параметры пагинации.
+        /// </param>
         /// <returns>
-        /// Коллекция отфильтрованных событий.
-        /// Если события отсутствуют, возвращается пустая коллекция.
+        /// Объект PagedResult включающий список событий после фильтрации и пагинации
         /// </returns>
-        Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default);
+        Task<PagedResult<Event>> GetEventsAsync(EventFilter filter, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Получает событие по Id из хранилища.
@@ -36,19 +37,11 @@ namespace EventManagementService.Repositories
         Task AddEventAsync(Event @event, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Вносит изменение в существующее событие.
-        /// </summary>
-        /// <param name="@event">
-        /// Объект события содержащий новые данные для внесения изменений.
-        /// </param>
-        Task UpdateEventAsync(Event @event, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Удаляет событие из хранилища.
         /// </summary>
         /// <param name="@event">
         /// Объект события для удаления.
         /// </param>
-        Task RemoveEventAsync(Event @event, CancellationToken cancellationToken = default);
+        void RemoveEvent(Event @event);
     }
 }
