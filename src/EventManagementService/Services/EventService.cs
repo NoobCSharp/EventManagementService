@@ -1,13 +1,9 @@
-﻿using EventManagementService.DataAccess;
-using EventManagementService.Dtos.EventDtos;
-using EventManagementService.Entities;
+﻿using EventManagementService.Dtos.EventDtos;
 using EventManagementService.Exceptions;
 using EventManagementService.Filters;
 using EventManagementService.Mappers;
 using EventManagementService.Models;
 using EventManagementService.Repositories;
-using Microsoft.EntityFrameworkCore;
-using static System.Net.WebRequestMethods;
 
 namespace EventManagementService.Services
 {
