@@ -25,7 +25,7 @@
 ## Создание новой миграции
 
 ``` bash
-dotnet ef migrations add InitialCreate
+dotnet ef migrations add MigrationName
 ```
 
 ## Применение миграций к базе данных
