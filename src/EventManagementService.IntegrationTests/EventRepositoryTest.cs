@@ -1,4 +1,5 @@
 ﻿using EventManagementService.DataAccess;
+using EventManagementService.Enums;
 using EventManagementService.Filters;
 using EventManagementService.Models;
 using EventManagementService.Repositories;
@@ -83,14 +84,15 @@ namespace EventManagementService.IntegrationTests
             // это исключает чтение из кеша и гарантирует, что данные реально записались в базу.
             await using var verifyContext = CreateContext();
 
-            var retrievedEvent = await repository.GetEventByIdAsync(@event.EventId);
+            var verifyRepository = new EventRepository(verifyContext);
+            var retrievedEvent = await verifyRepository.GetEventByIdAsync(@event.EventId);
 
             retrievedEvent.Should().NotBeNull();
             retrievedEvent.EventId.Should().Be(@event.EventId);
             retrievedEvent.Title.Should().Be(@event.Title);
             retrievedEvent.Description.Should().Be(@event.Description);
-            retrievedEvent.StartAt.Should().Be(@event.StartAt);
-            retrievedEvent.EndAt.Should().Be(@event.EndAt);
+            retrievedEvent.StartAt.Should().BeCloseTo(@event.StartAt, TimeSpan.FromMicroseconds(1));
+            retrievedEvent.EndAt.Should().BeCloseTo(@event.EndAt, TimeSpan.FromMicroseconds(1));
             retrievedEvent.TotalSeats.Should().Be(@event.TotalSeats);
             retrievedEvent.AvailableSeats.Should().Be(@event.AvailableSeats);
         }
@@ -123,14 +125,15 @@ namespace EventManagementService.IntegrationTests
             // Assert
             await using var verifyContext = CreateContext();
 
-            var retrievedEvent = await repository.GetEventByIdAsync(@event.EventId);
+            var verifyRepository = new EventRepository(verifyContext);
+            var retrievedEvent = await verifyRepository.GetEventByIdAsync(@event.EventId);
 
             retrievedEvent.Should().NotBeNull();
             retrievedEvent.EventId.Should().Be(@event.EventId);
             retrievedEvent.Title.Should().Be(@event.Title);
             retrievedEvent.Description.Should().Be(@event.Description);
-            retrievedEvent.StartAt.Should().Be(@event.StartAt);
-            retrievedEvent.EndAt.Should().Be(@event.EndAt);
+            retrievedEvent.StartAt.Should().BeCloseTo(@event.StartAt, TimeSpan.FromMicroseconds(1));
+            retrievedEvent.EndAt.Should().BeCloseTo(@event.EndAt, TimeSpan.FromMicroseconds(1));
             retrievedEvent.TotalSeats.Should().Be(@event.TotalSeats);
             retrievedEvent.AvailableSeats.Should().Be(@event.AvailableSeats);
         }
@@ -166,7 +169,8 @@ namespace EventManagementService.IntegrationTests
             // Assert
             await using var verifyContext = CreateContext();
 
-            var retrievedEvent = await repository.GetEventByIdAsync(@event.EventId);
+            var verifyRepository = new EventRepository(verifyContext);
+            var retrievedEvent = await verifyRepository.GetEventByIdAsync(@event.EventId);
 
             retrievedEvent.Should().BeNull();
         }
@@ -191,14 +195,15 @@ namespace EventManagementService.IntegrationTests
             // Assert
             await using var verifyContext = CreateContext();
 
-            var pagedResult = await repository.GetEventsAsync(filter);
+            var verifyRepository = new EventRepository(verifyContext);
+            var pagedResult = await verifyRepository.GetEventsAsync(filter);
 
             pagedResult.TotalCount.Should().Be(4);
             pagedResult.Items.Should().HaveCount(4);
         }
 
         [Fact]
-        public async Task GetEventsAsync_ShouldReturnEventsWithFilter_ByTitle() 
+        public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByTitle() 
         {
             // Arrange
             await ResetDatabaseAsync();
@@ -210,8 +215,6 @@ namespace EventManagementService.IntegrationTests
             var filter = new EventFilter
             {
                 Title = "Conference",
-                From = new DateTime(2026, 1, 1).ToUniversalTime(),
-                To = new DateTime(2026, 12, 31).ToUniversalTime()
             };
 
             // Act
@@ -222,14 +225,75 @@ namespace EventManagementService.IntegrationTests
             // Assert
             await using var verifyContext = CreateContext();
 
-            var pagedResult = await repository.GetEventsAsync(filter);
+            var verifyRepository = new EventRepository(verifyContext);
+            var pagedResult = await verifyRepository.GetEventsAsync(filter);
 
             pagedResult.Items.Should().HaveCount(1);
             pagedResult.Items.ElementAt(0).Title.Should().Contain("Conference");
         }
 
         [Fact]
-        public async Task GetEventsAsync_ShouldReturnEventsWithFilter_ByDate()
+        public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByFrom()
+        {
+            // Arrange
+            await ResetDatabaseAsync();
+
+            await using var context = CreateContext();
+
+            var repository = new EventRepository(context);
+
+            var filter = new EventFilter
+            {
+                From = new DateTime(2026, 3, 12).ToUniversalTime(),
+            };
+
+            // Act
+            context.Events.AddRange(TestSeedData());
+
+            await context.SaveChangesAsync();
+
+            // Assert
+            await using var verifyContext = CreateContext();
+
+            var verifyRepository = new EventRepository(verifyContext);
+            var pagedResult = await verifyRepository.GetEventsAsync(filter);
+
+            pagedResult.Items.Should().HaveCount(2);
+            pagedResult.Items.Should().OnlyContain(e => e.StartAt >= filter.From);
+        }
+
+        [Fact]
+        public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByTo()
+        {
+            // Arrange
+            await ResetDatabaseAsync();
+
+            await using var context = CreateContext();
+
+            var repository = new EventRepository(context);
+
+            var filter = new EventFilter
+            {
+                To = new DateTime(2026, 3, 12).ToUniversalTime(),
+            };
+
+            // Act
+            context.Events.AddRange(TestSeedData());
+
+            await context.SaveChangesAsync();
+
+            // Assert
+            await using var verifyContext = CreateContext();
+
+            var verifyRepository = new EventRepository(verifyContext);
+            var pagedResult = await verifyRepository.GetEventsAsync(filter);
+
+            pagedResult.Items.Should().HaveCount(2);
+            pagedResult.Items.Should().OnlyContain(e => e.EndAt <= filter.To);
+        }
+
+        [Fact]
+        public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByDate()
         {
             // Arrange
             await ResetDatabaseAsync();
@@ -252,13 +316,14 @@ namespace EventManagementService.IntegrationTests
             // Assert
             await using var verifyContext = CreateContext();
 
-            var pagedResult = await repository.GetEventsAsync(filter);
+            var verifyRepository = new EventRepository(verifyContext);
+            var pagedResult = await verifyRepository.GetEventsAsync(filter);
 
             pagedResult.Items.Should().HaveCount(3);
         }
 
         [Fact]
-        public async Task GetEventsAsync_ShouldApplyPagination()
+        public async Task GetEventsAsync_ShouldReturnEvents_WithPagination()
         {
             // Arrange
             await ResetDatabaseAsync();
@@ -279,12 +344,79 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            var pagedResult = await repository.GetEventsAsync(filter);
+            await using var verifyContext = CreateContext();
+
+            var verifyRepository = new EventRepository(verifyContext);
+            var pagedResult = await verifyRepository.GetEventsAsync(filter);
 
             pagedResult.TotalCount.Should().Be(4);
             pagedResult.Items.Should().HaveCount(2);
             pagedResult.Items.First().Title.Should().Be("DotNet Meetup");
             pagedResult.Items.Last().Title.Should().Be("Architecture Day");
+        }
+
+        [Fact]
+        public async Task DeleteEvent_ShouldCascadeDeleteBookings()
+        {
+            // Arrange
+            await ResetDatabaseAsync();
+
+            await using var context = CreateContext();
+
+            var eventRepository = new EventRepository(context);
+            var bookingRepository = new BookingRepository(context);
+
+            var @event = new Event
+            {
+                EventId = Guid.NewGuid(),
+                Title = "Test Event",
+                Description = "This is a test event.",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 100,
+                AvailableSeats = 100
+            };
+
+            var bookingOne = new Booking
+            {
+                BookingId = Guid.NewGuid(),
+                EventId = @event.EventId,
+                Event = @event,
+                CreatedAt = DateTime.UtcNow,
+                Status = BookingStatus.Pending
+            };
+
+            var bookingTwo = new Booking
+            {
+                BookingId = Guid.NewGuid(),
+                EventId = @event.EventId,
+                Event = @event,
+                CreatedAt = DateTime.UtcNow,
+                Status = BookingStatus.Pending
+            };
+
+            // Act
+            await eventRepository.AddEventAsync(@event);
+
+            await bookingRepository.CreateBookingAsync(bookingOne);
+            await bookingRepository.CreateBookingAsync(bookingTwo);
+
+            await context.SaveChangesAsync();
+
+            context.Events.Remove(@event);
+
+            await context.SaveChangesAsync();
+
+            // Assert
+            await using var verifyContext = CreateContext();
+          
+            bookingRepository = new BookingRepository(verifyContext);
+            
+            var deletedBookingOne = await bookingRepository.GetBookingByIdAsync(bookingOne.BookingId);
+            var deletedBookingTwo = await bookingRepository.GetBookingByIdAsync(bookingTwo.BookingId);
+
+            deletedBookingOne.Should().BeNull();
+            deletedBookingTwo.Should().BeNull();
         }
 
         private static List<Event> TestSeedData()
