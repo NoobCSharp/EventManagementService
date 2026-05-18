@@ -9,57 +9,23 @@ using Testcontainers.PostgreSql;
 
 namespace EventManagementService.IntegrationTests
 {
-    public class EventRepositoryTest : IAsyncLifetime
+    [Collection("PostgresCollection")]
+    public class EventRepositoryTest
     {
-        /// <summary>
-        ///  Контейнер PostgreSQL для тестирования репозитория событий. 
-        ///  Он использует образ "postgres:16-alpine"
-        ///  будет автоматически запущен перед выполнением тестов и остановлен после их завершения.
-        /// </summary>
-        private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine").Build();
+        private readonly PostgreSqlContainerFixture _fixture;
 
-        public async Task InitializeAsync()
+        public EventRepositoryTest(PostgreSqlContainerFixture fixture)
         {
-            await _postgres.StartAsync();
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _postgres.DisposeAsync();
-        }
-
-        private AppDbContext CreateContext()
-        {
-            // Создание экземпляра AppDbContext с использованием строки подключения из контейнера PostgreSQL.
-            var connectionString = _postgres.GetConnectionString();
-
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseNpgsql(connectionString)
-                .Options;
-
-            var context = new AppDbContext(options);
-
-            // Создаёт таблицы по модели EF Core.
-            context.Database.Migrate();
-
-            return context;
-        }
-
-        private async Task ResetDatabaseAsync()
-        {
-            await using var context = CreateContext();
-
-            await context.Database.ExecuteSqlRawAsync(
-                "TRUNCATE TABLE \"Bookings\", \"Events\" RESTART IDENTITY CASCADE");
+            _fixture = fixture;
         }
 
         [Fact]
         public async Task AddEvent_ShouldAddEventToDatabase()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -82,7 +48,7 @@ namespace EventManagementService.IntegrationTests
             // Assert
             // Для проверки создаётся отдельный контекст
             // это исключает чтение из кеша и гарантирует, что данные реально записались в базу.
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var retrievedEvent = await verifyRepository.GetEventByIdAsync(@event.EventId);
@@ -101,9 +67,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventById_ShouldReturnEvent()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -123,7 +89,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var retrievedEvent = await verifyRepository.GetEventByIdAsync(@event.EventId);
@@ -142,9 +108,9 @@ namespace EventManagementService.IntegrationTests
         public async Task RemoveEvent_ShouldRemoveEventFromDatabase()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -167,7 +133,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var retrievedEvent = await verifyRepository.GetEventByIdAsync(@event.EventId);
@@ -179,9 +145,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventsAsync_ShouldReturnAllEvents_WhenFilterIsEmpty()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -193,7 +159,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var pagedResult = await verifyRepository.GetEventsAsync(filter);
@@ -206,9 +172,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByTitle() 
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -223,7 +189,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var pagedResult = await verifyRepository.GetEventsAsync(filter);
@@ -236,9 +202,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByFrom()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -253,7 +219,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var pagedResult = await verifyRepository.GetEventsAsync(filter);
@@ -266,9 +232,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByTo()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -283,7 +249,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var pagedResult = await verifyRepository.GetEventsAsync(filter);
@@ -296,9 +262,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventsAsync_ShouldReturnEventsWithFilter_OnlyByDate()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -314,7 +280,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var pagedResult = await verifyRepository.GetEventsAsync(filter);
@@ -326,9 +292,9 @@ namespace EventManagementService.IntegrationTests
         public async Task GetEventsAsync_ShouldReturnEvents_WithPagination()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var repository = new EventRepository(context);
 
@@ -344,7 +310,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
             var pagedResult = await verifyRepository.GetEventsAsync(filter);
@@ -359,9 +325,9 @@ namespace EventManagementService.IntegrationTests
         public async Task DeleteEvent_ShouldCascadeDeleteBookings()
         {
             // Arrange
-            await ResetDatabaseAsync();
+            await _fixture.ResetDatabaseAsync();
 
-            await using var context = CreateContext();
+            await using var context = _fixture.CreateContext();
 
             var eventRepository = new EventRepository(context);
             var bookingRepository = new BookingRepository(context);
@@ -408,7 +374,7 @@ namespace EventManagementService.IntegrationTests
             await context.SaveChangesAsync();
 
             // Assert
-            await using var verifyContext = CreateContext();
+            await using var verifyContext = _fixture.CreateContext();
           
             bookingRepository = new BookingRepository(verifyContext);
             
