@@ -1,9 +1,10 @@
 ﻿using EventManagementService.Models;
+using EventManagementService.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventManagementService.DataAccess
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IUnitOfWork
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {

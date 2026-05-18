@@ -1,21 +1,25 @@
-﻿using EventManagementService.DataAccess;
-using EventManagementService.Dtos.BookingDtos;
+﻿using EventManagementService.Dtos.BookingDtos;
 using EventManagementService.Enums;
 using EventManagementService.Exceptions;
 using EventManagementService.Mappers;
 using EventManagementService.Models;
-using Microsoft.EntityFrameworkCore;
+using EventManagementService.Repositories;
 
 namespace EventManagementService.Services
 {
-    public class BookingService : IBookingService
+    public class BookingService
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly IEventRepository _eventRepository;
+        private readonly IBookingRepository _bookingRepository;
+        private readonly IUnitOfWork _unitOfWork;
+
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
-        
-        public BookingService(AppDbContext appDbContext)
+         
+        public BookingService(IEventRepository eventRepository, IBookingRepository bookingRepository, IUnitOfWork unitOfWork)
         {
-            _appDbContext = appDbContext;
+            _eventRepository = eventRepository;
+            _bookingRepository = bookingRepository;
+            _unitOfWork = unitOfWork;
         }
 
         /// <summary>
@@ -37,8 +41,7 @@ namespace EventManagementService.Services
 
             try
             {
-                var existingEvent = await _appDbContext.Events
-                    .FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);
+                var existingEvent = await _eventRepository.GetEventByIdAsync(id, cancellationToken);
 
                 if (existingEvent is null)
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
@@ -56,8 +59,8 @@ namespace EventManagementService.Services
                     Event = existingEvent
                 };
 
-                await _appDbContext.Bookings.AddAsync(booking, cancellationToken);
-                await _appDbContext.SaveChangesAsync(cancellationToken);
+                await _bookingRepository.CreateBookingAsync(booking, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 return BookingMapper.BookingToResponse(booking);
             }
@@ -75,11 +78,11 @@ namespace EventManagementService.Services
         /// Уникальный идентификатор брони.
         /// </param>
         /// <returns>
-        /// Объект брони из коллекции.
+        /// Объект брони из хранилища данных.
         /// </returns>
         public async Task<BookingDtoResponse> GetBookingByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var existingBooking = await _appDbContext.Bookings.FirstOrDefaultAsync(b => b.BookingId == id, cancellationToken);
+            var existingBooking = await _bookingRepository.GetBookingByIdAsync(id, cancellationToken);
 
             if (existingBooking is null)
                 throw new NotFoundException("Бронирование по указанному идентификатору не найдено!");
@@ -88,5 +91,7 @@ namespace EventManagementService.Services
 
             return bookingDtoResponse;
         }
+
+
     }
 }

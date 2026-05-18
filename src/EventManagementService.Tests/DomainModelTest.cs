@@ -1,0 +1,118 @@
+﻿using EventManagementService.Enums;
+using EventManagementService.Models;
+using FluentAssertions;
+
+namespace EventManagementService.Tests
+{
+    public class DomainModelTest
+    {
+        /// <summary>
+        /// Проверяет, что Confirm устанавливает статус Confirmed
+        /// и заполняет время обработки.
+        /// </summary>
+        [Fact]
+        public async Task ConfirmBooking_Should_Set_StatusConfirmed_And_ProcessedAt()
+        {
+            // Arrange
+            var eventId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 10,
+                AvailableSeats = 10
+            };
+
+            var bookingId = Guid.NewGuid();
+            var processedAt = DateTime.UtcNow.AddMinutes(5);
+
+            var fakeBooking = new Booking
+            {
+                BookingId = bookingId,
+                EventId = Guid.NewGuid(),
+                Event = fakeEvent,
+                CreatedAt = DateTime.UtcNow,
+                ProcessedAt = processedAt,
+                Status = BookingStatus.Pending,
+            };
+
+            // Act
+            fakeBooking.Confirm(processedAt);
+
+            // Assert
+            fakeBooking.Status.Should().Be(BookingStatus.Confirmed);
+            fakeBooking.ProcessedAt.Should().Be(processedAt);
+        }
+
+        /// <summary>
+        /// Проверяет, что Reject устанавливает статус Rejected
+        /// и заполняет время обработки.
+        /// </summary>
+        [Fact]
+        public async Task RejectBooking_Should_Set_StatusReject_And_ProcessedAt()
+        {
+            // Arrange
+            var eventId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 10,
+                AvailableSeats = 10
+            };
+
+            var bookingId = Guid.NewGuid();
+            var processedAt = DateTime.UtcNow.AddMinutes(5);
+
+            var fakeBooking = new Booking
+            {
+                BookingId = bookingId,
+                EventId = Guid.NewGuid(),
+                Event = fakeEvent,
+                CreatedAt = DateTime.UtcNow,
+                ProcessedAt = processedAt,
+                Status = BookingStatus.Pending,
+            };
+
+            // Act
+            fakeBooking.Reject(processedAt);
+
+            // Assert
+            fakeBooking.Status.Should().Be(BookingStatus.Rejected);
+            fakeBooking.ProcessedAt.Should().Be(processedAt);
+        }
+
+        /// <summary>
+        /// Проверяет, что  при отклонении брони и освобождении места
+        /// количество доступных мест увеличивается.
+        /// </summary>
+        [Fact]
+        public async Task ReleaseSeats_Should_Release_AvailableSeats()
+        {
+            // Arrange
+            var eventId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 2,
+                AvailableSeats = 1
+            };
+
+            // Act
+            fakeEvent.ReleaseSeats();
+
+            // Assert
+            fakeEvent.AvailableSeats.Should().Be(2);
+        }
+    }
+}

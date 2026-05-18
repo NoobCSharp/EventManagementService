@@ -7,9 +7,9 @@ namespace EventManagementService.Controllers
     [ApiController]
     public class BookingController : ControllerBase
     {
-        private readonly IBookingService _bookingService;
+        private readonly BookingService _bookingService;
 
-        public BookingController(IBookingService bookingService)
+        public BookingController(BookingService bookingService)
         {
             _bookingService = bookingService;
         }

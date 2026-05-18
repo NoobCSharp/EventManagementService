@@ -13,7 +13,7 @@
         /// <summary>
         /// Коллекция событий после фильтрации и пагинации
         /// </summary>
-        public IEnumerable<EventDtoResponse> ResponseEventDtos { get; init; } = [];
+        public IReadOnlyList<EventDtoResponse> ResponseEventDtos { get; init; } = [];
 
         /// <summary>
         /// Номер текущей страницы
@@ -23,6 +23,6 @@
         /// <summary>
         /// Количество элементов на текущей странице.
         /// </summary>
-        public int NumberEventsOnCurrentPage { get; init; }
+        public int NumberOnCurrentPage { get; init; }
     }
 }
