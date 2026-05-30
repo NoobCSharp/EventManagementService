@@ -1,5 +1,5 @@
-﻿using EventManagementService.Dtos.BookingDtos;
-using EventManagementService.Services;
+﻿using Application.Dtos.BookingDtos;
+using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers

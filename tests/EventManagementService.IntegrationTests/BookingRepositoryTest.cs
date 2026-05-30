@@ -1,10 +1,7 @@
-﻿using EventManagementService.DataAccess;
-using EventManagementService.Enums;
-using EventManagementService.Models;
-using EventManagementService.Repositories;
+﻿using Domain.Entities;
+using Domain.Enums;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
+using Infrastructure.Repositories;
 
 namespace EventManagementService.IntegrationTests
 {

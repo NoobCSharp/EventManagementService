@@ -1,11 +1,11 @@
-﻿using EventManagementService.Dtos.EventDtos;
-using EventManagementService.Entities;
-using EventManagementService.Exceptions;
-using EventManagementService.Filters;
-using EventManagementService.Models;
-using EventManagementService.Repositories;
-using EventManagementService.Services;
+﻿using Application.Dtos.EventDtos;
+using Application.Filters;
+using Application.Interfaces;
+using Application.Services;
+using Domain.Entities;
+using Domain.Exceptions;
 using FluentAssertions;
+using Infrastructure.Entities;
 using Moq;
 
 namespace EventManagementService.Tests
@@ -651,6 +651,7 @@ namespace EventManagementService.Tests
                 Description = "NewDescription",
                 StartAt = DateTime.UtcNow,
                 EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 1
             };
 
             // Assert(проверка)
@@ -672,6 +673,7 @@ namespace EventManagementService.Tests
                 Description = "NewDescription",
                 StartAt = DateTime.UtcNow,
                 EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 1
             };
 
             var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
@@ -699,6 +701,7 @@ namespace EventManagementService.Tests
                 Description = "NewDescription",
                 StartAt = new DateTime(2026, 3, 25),
                 EndAt = new DateTime(2026, 3, 24),
+                TotalSeats = 1
             };
 
             var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);

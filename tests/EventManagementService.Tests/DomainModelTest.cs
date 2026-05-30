@@ -1,5 +1,5 @@
-﻿using EventManagementService.Enums;
-using EventManagementService.Models;
+﻿using Domain.Entities;
+using Domain.Enums;
 using FluentAssertions;
 
 namespace EventManagementService.Tests

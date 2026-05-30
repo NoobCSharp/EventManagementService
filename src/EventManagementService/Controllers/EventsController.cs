@@ -1,6 +1,6 @@
-﻿using EventManagementService.Dtos.EventDtos;
-using EventManagementService.Filters;
-using EventManagementService.Services;
+﻿using Application.Dtos.EventDtos;
+using Application.Filters;
+using Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers

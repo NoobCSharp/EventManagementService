@@ -1,4 +1,4 @@
-﻿using EventManagementService.Repositories;
+﻿using Application.Interfaces;
 
 namespace EventManagementService.BackgroundServices
 {

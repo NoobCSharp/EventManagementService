@@ -1,9 +1,9 @@
-﻿using EventManagementService.BackgroundServices;
-using EventManagementService.Enums;
-using EventManagementService.Exceptions;
-using EventManagementService.Models;
-using EventManagementService.Repositories;
-using EventManagementService.Services;
+﻿using Application.Interfaces;
+using Application.Services;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Exceptions;
+using EventManagementService.BackgroundServices;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;

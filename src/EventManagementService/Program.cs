@@ -1,8 +1,9 @@
-﻿using EventManagementService.BackgroundServices;
-using EventManagementService.DataAccess;
+﻿using Application.Interfaces;
+using Application.Services;
+using EventManagementService.BackgroundServices;
 using EventManagementService.Middlewares.ExceptionMiddleware;
-using EventManagementService.Repositories;
-using EventManagementService.Services;
+using Infrastructure.DataAccess;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
