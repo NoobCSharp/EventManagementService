@@ -1,7 +1,9 @@
-﻿using Application.Interfaces;
+﻿using Application;
+using Application.Interfaces;
 using Application.Services;
 using EventManagementService.BackgroundServices;
 using EventManagementService.Middlewares.ExceptionMiddleware;
+using Infrastructure;
 using Infrastructure.DataAccess;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -27,34 +29,16 @@ namespace EventManagementService
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
-            // Add services to the container.
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddOpenApi();
 
-            builder.Services.AddScoped<EventService>();
-            builder.Services.AddScoped<BookingService>();
+            // Регистрация сервисов приложения и репозиториев
+            builder.Services.AddApplicationServices();
+            builder.Services.AddInfrastructureServices(builder.Configuration);
 
-            builder.Services.AddScoped<IEventRepository, EventRepository>();
-            builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-
-            builder.Services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>());
-
+            // Регистрация фоновой службы для обработки броней
             builder.Services.AddHostedService<BookingProcessingService>();
-
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("Connection string 'Default' not found.");
-
-            builder.Services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseNpgsql(connectionString);                        // Обязательно
-#if DEBUG
-                options
-                        .LogTo(Console.WriteLine, LogLevel.Information)     // Удобно в разработке
-                        .EnableDetailedErrors()                             // Удобно в разработке
-                        .EnableSensitiveDataLogging();                      // Осторожно! Только для dev
-#endif
-            });
 
             var app = builder.Build();
 

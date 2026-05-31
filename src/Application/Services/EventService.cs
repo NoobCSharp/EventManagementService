@@ -1,4 +1,4 @@
-﻿using Application.Dtos.EventDtos;
+﻿ using Application.Dtos.EventDtos;
 using Application.Filters;
 using Application.Interfaces;
 using Domain.Entities;
