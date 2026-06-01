@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
-namespace EventManagementService.Tests
+namespace EventManagementService.UnitTests
 {
     public class BookingServiceTest
     {

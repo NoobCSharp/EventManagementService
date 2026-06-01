@@ -2,7 +2,7 @@
 using Domain.Enums;
 using FluentAssertions;
 
-namespace EventManagementService.Tests
+namespace EventManagementService.UnitTests
 {
     public class DomainModelTest
     {

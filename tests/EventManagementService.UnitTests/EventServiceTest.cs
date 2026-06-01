@@ -8,7 +8,7 @@ using FluentAssertions;
 using Infrastructure.Entities;
 using Moq;
 
-namespace EventManagementService.Tests
+namespace EventManagementService.UnitTests
 {
     public class EventServiceTest
     {

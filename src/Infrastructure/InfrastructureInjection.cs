@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure
 {
-    public static class DependencyInjection
+    public static class InfrastructureInjection
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
