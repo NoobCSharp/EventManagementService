@@ -43,7 +43,7 @@ namespace Domain.Entities
             Status = BookingStatus.Rejected;
             ProcessedAt = processedAt;
         }
-            
+        
         public void Confirm(DateTime processedAt)
         {
             Status = BookingStatus.Confirmed;

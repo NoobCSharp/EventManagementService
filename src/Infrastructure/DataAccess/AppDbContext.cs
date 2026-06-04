@@ -11,6 +11,7 @@ namespace Infrastructure.DataAccess
         }
 
         public DbSet<Event> Events { get; set; }
+
         public DbSet<Booking> Bookings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

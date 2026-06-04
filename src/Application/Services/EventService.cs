@@ -61,28 +61,28 @@ namespace Application.Services
         /// - Общее количество мест должно быть положительным числом.
         /// Если событие некорректно, будет выброшено исключение BadRequestException.
         /// </summary>
-        /// <param name="requestEventDto">Данные для создания нового события.</param>
+        /// <param name="eventDtoRequest">Данные для создания нового события.</param>
         /// <returns>Созданное событие.</returns>
-        public async Task<EventDtoResponse> AddEventAsync(EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
+        public async Task<EventDtoResponse> AddEventAsync(EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(requestEventDto.Title))
+            if (string.IsNullOrWhiteSpace(eventDtoRequest.Title))
                 throw new BadRequestException("Название события обязательно к заполнению!");
 
-            if (requestEventDto.EndAt <= requestEventDto.StartAt)
+            if (eventDtoRequest.EndAt <= eventDtoRequest.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
-            if (requestEventDto.TotalSeats <= 0)
+            if (eventDtoRequest.TotalSeats <= 0)
                 throw new BadRequestException("Общее количество мест должно быть положительным числом!");
 
             Event @event = new()
             {
                 EventId = Guid.NewGuid(),
-                Title = requestEventDto.Title,
-                Description = requestEventDto.Description,
-                StartAt = requestEventDto.StartAt,
-                EndAt = requestEventDto.EndAt,
-                TotalSeats = requestEventDto.TotalSeats,
-                AvailableSeats = requestEventDto.TotalSeats
+                Title = eventDtoRequest.Title,
+                Description = eventDtoRequest.Description,
+                StartAt = eventDtoRequest.StartAt,
+                EndAt = eventDtoRequest.EndAt,
+                TotalSeats = eventDtoRequest.TotalSeats,
+                AvailableSeats = eventDtoRequest.TotalSeats
             };
 
             await _eventRepository.AddEventAsync(@event, cancellationToken);
@@ -99,10 +99,10 @@ namespace Application.Services
         /// Если событие не найдено, будет выброшено исключение NotFoundException.
         /// </summary>
         /// <param name="id">Идентификатор события для обновления.</param>
-        /// <param name="requestEventDto">Данные для обновления события.</param>
-        public async Task UpdateEventAsync(Guid id, EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
+        /// <param name="eventDtoRequest">Данные для обновления события.</param>
+        public async Task UpdateEventAsync(Guid id, EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {
-            if (requestEventDto.EndAt <= requestEventDto.StartAt)
+            if (eventDtoRequest.EndAt <= eventDtoRequest.StartAt)
                 throw new BadRequestException("Дата окончания события не может быть раньше даты начала события!");
 
             var existingEvent = await _eventRepository.GetEventByIdAsync(id, cancellationToken);
@@ -113,15 +113,15 @@ namespace Application.Services
             // TODO подумать над тем, что будет,
             // если при обновлении события общее количество мест будет меньше,
             // чем количество уже забронированных мест.
-            if (requestEventDto.TotalSeats < existingEvent.AvailableSeats)
+            if (eventDtoRequest.TotalSeats < existingEvent.AvailableSeats)
                 throw new BadRequestException("Общее количество мест не может быть меньше количества уже забронированных мест!");
 
-            existingEvent.Title = requestEventDto.Title;
-            existingEvent.Description = requestEventDto.Description;
-            existingEvent.StartAt = requestEventDto.StartAt;
-            existingEvent.EndAt = requestEventDto.EndAt;
-            existingEvent.TotalSeats = requestEventDto.TotalSeats;
-            existingEvent.AvailableSeats = requestEventDto.TotalSeats - existingEvent.AvailableSeats;
+            existingEvent.Title = eventDtoRequest.Title;
+            existingEvent.Description = eventDtoRequest.Description;
+            existingEvent.StartAt = eventDtoRequest.StartAt;
+            existingEvent.EndAt = eventDtoRequest.EndAt;
+            existingEvent.TotalSeats = eventDtoRequest.TotalSeats;
+            existingEvent.AvailableSeats = eventDtoRequest.TotalSeats - existingEvent.AvailableSeats;
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
