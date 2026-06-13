@@ -1,11 +1,11 @@
-﻿using Application.Dtos.EventDtos;
+﻿using Application.Common;
+using Application.Dtos.EventDtos;
 using Application.Filters;
 using Application.Interfaces;
 using Application.Services;
 using Domain.Entities;
 using Domain.Exceptions;
 using FluentAssertions;
-using Infrastructure.Entities;
 using Moq;
 
 namespace EventManagementService.UnitTests

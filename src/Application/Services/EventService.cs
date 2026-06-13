@@ -1,9 +1,9 @@
-﻿ using Application.Dtos.EventDtos;
+﻿using Application.Dtos.EventDtos;
 using Application.Filters;
 using Application.Interfaces;
+using Application.Mappers;
 using Domain.Entities;
 using Domain.Exceptions;
-using EventManagementService.Mappers;
 
 namespace Application.Services
 {

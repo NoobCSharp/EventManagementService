@@ -1,7 +1,7 @@
 ﻿using Application.Dtos.EventDtos;
 using Domain.Entities;
 
-namespace EventManagementService.Mappers
+namespace Application.Mappers
 {
     public static class EventMapper
     {
