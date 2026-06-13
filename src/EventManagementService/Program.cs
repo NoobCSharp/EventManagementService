@@ -47,9 +47,10 @@ namespace EventManagementService
                 app.UseSwaggerUI();
             }
 
-            // Configure the HTTP request pipeline.
             app.UseExceptionHandlingMiddleware();
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             using (var scope = app.Services.CreateScope())

@@ -53,6 +53,7 @@ namespace Application.Services
                 {
                     BookingId = Guid.NewGuid(),
                     EventId = id,
+                    UserId = Guid.NewGuid(), //TODO временное решение, пока нет авторизации и аутентификации
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
                     ProcessedAt = null,

@@ -3,9 +3,7 @@ using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
-using EventManagementService.BackgroundServices;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
