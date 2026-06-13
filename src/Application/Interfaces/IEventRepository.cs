@@ -1,6 +1,6 @@
-﻿using Application.Filters;
+﻿using Application.Common;
+using Application.Filters;
 using Domain.Entities;
-using Infrastructure.Entities;
 
 namespace Application.Interfaces
 {

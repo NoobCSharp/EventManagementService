@@ -1,8 +1,8 @@
-﻿using Application.Filters;
+﻿using Application.Common;
+using Application.Filters;
 using Application.Interfaces;
 using Domain.Entities;
 using Infrastructure.DataAccess;
-using Infrastructure.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories

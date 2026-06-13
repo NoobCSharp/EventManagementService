@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Entities
+﻿namespace Application.Common
 {
     public record PagedResult<T>
     {
