@@ -231,7 +231,7 @@ http://localhost:5169/swagger/index.html
 
 ### Фоновая обработка броней
 
-За обработку ожидающих броней отвечает `BookingProcessingService`.
+За обработку ожидающих броней отвечает `BookingProcessorService`.
 Логика обработки:
 
  1. Сервис периодически (в цикле) вызывает метод `ProcessBookingAsync`
@@ -265,7 +265,7 @@ http://localhost:5169/swagger/index.html
 }
 ```
 
-3. Подождать пока фоновый сервис `BookingProcessingService` обработает бронь
+3. Подождать пока фоновый сервис `BookingProcessorService` обработает бронь
 4. Получить бронь по Id:
    - `GET /bookings/{id}` теперь status будет `Confirmed` и `ProcessedAt` заполнен
 
