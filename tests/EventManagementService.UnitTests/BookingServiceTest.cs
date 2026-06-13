@@ -620,11 +620,11 @@ namespace EventManagementService.UnitTests
         }
 
         /// <summary>
-        /// Проверяет, что BookingProcessingService изменяет статус брони
+        /// Проверяет, что BookingProcessorService изменяет статус брони
         /// и устанавливает время обработки.
         /// </summary>
         [Fact]
-        public async Task GetBookingStatus_ShouldReturnModifiedStatus_After_BookingProcessingService()
+        public async Task GetBookingStatus_ShouldReturnModifiedStatus_After_BookingProcessorService()
         {
             // Arrange (подготовка)
             var bookingRepositoryMock = new Mock<IBookingRepository>();
@@ -665,49 +665,18 @@ namespace EventManagementService.UnitTests
                 .Setup(r => r.SaveChangesAsync(default))
                 .ReturnsAsync(1);
 
-            // IServiceProvider
-            var serviceProviderMock = new Mock<IServiceProvider>();
-
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IBookingRepository)))
-                .Returns(bookingRepositoryMock.Object);
-
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IEventRepository)))
-                .Returns(eventRepositoryMock.Object);
-
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IUnitOfWork)))
-                .Returns(unitOfWorkMock.Object);
-
-            // IServiceScope
-            var scopeMock = new Mock<IServiceScope>();
-
-            scopeMock
-                .Setup(x => x.ServiceProvider)
-                .Returns(serviceProviderMock.Object);
-
-            // IServiceScopeFactory
-            var scopeFactoryMock = new Mock<IServiceScopeFactory>();
-
-            scopeFactoryMock
-                .Setup(x => x.CreateScope())
-                .Returns(scopeMock.Object);
-
-            var service = new BookingProcessingService(
-                scopeFactoryMock.Object,
-                NullLogger<BookingProcessingService>.Instance);
+            var processor = new BookingProcessorService(bookingRepositoryMock.Object, eventRepositoryMock.Object, unitOfWorkMock.Object, NullLogger<BookingProcessorService>.Instance);
 
             // Act (действие)
-            await service.ProcessBookingAsync(bookingId);
+            await processor.ProcessBookingAsync(bookingId);
 
             // Assert (проверка)
             fakeBooking.Status.Should().Be(BookingStatus.Confirmed);
-
             fakeBooking.ProcessedAt.Should().NotBeNull();
+            fakeBooking.ProcessedAt.Should().BeAfter(fakeBooking.CreatedAt);
 
             unitOfWorkMock.Verify(
-                x => x.SaveChangesAsync(default),
+                x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 

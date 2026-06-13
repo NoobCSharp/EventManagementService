@@ -1,5 +1,5 @@
 ﻿using Application.Dtos.BookingDtos;
-using Application.Services;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
@@ -7,9 +7,9 @@ namespace EventManagementService.Controllers
     [ApiController]
     public class BookingController : ControllerBase
     {
-        private readonly BookingService _bookingService;
+        private readonly IBookingService _bookingService;
 
-        public BookingController(BookingService bookingService)
+        public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
         }

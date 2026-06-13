@@ -1,11 +1,8 @@
 ﻿using Application;
-using Application.Interfaces;
-using Application.Services;
 using EventManagementService.BackgroundServices;
 using EventManagementService.Middlewares.ExceptionMiddleware;
 using Infrastructure;
 using Infrastructure.DataAccess;
-using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -38,7 +35,7 @@ namespace EventManagementService
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             // Регистрация фоновой службы для обработки броней
-            builder.Services.AddHostedService<BookingProcessingService>();
+            builder.Services.AddHostedService<BookingProcessorHostedService>();
 
             var app = builder.Build();
 

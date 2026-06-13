@@ -1,6 +1,6 @@
 ﻿using Application.Dtos.EventDtos;
 using Application.Filters;
-using Application.Services;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
@@ -12,9 +12,9 @@ namespace EventManagementService.Controllers
     [Route("events")]
     public class EventsController : ControllerBase
     {
-        private readonly EventService _eventService;
+        private readonly IEventService _eventService;
         
-        public EventsController(EventService eventService)
+        public EventsController(IEventService eventService)
         {
             _eventService = eventService;
         }

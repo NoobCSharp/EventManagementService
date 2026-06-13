@@ -1,4 +1,5 @@
-﻿using Application.Services;
+﻿using Application.Interfaces;
+using Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -7,8 +8,10 @@ namespace Application
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<EventService>();
-            services.AddScoped<BookingService>();
+            services.AddScoped<IEventService, EventService>();
+            services.AddScoped<IBookingService, BookingService>();
+
+            services.AddScoped<IBookingProcessor, BookingProcessorService>();
 
             return services;
         }

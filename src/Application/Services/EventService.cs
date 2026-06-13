@@ -7,7 +7,7 @@ using Domain.Exceptions;
 
 namespace Application.Services
 {
-    public class EventService
+    public class EventService : IEventService
     {
         private readonly IEventRepository _eventRepository;
         private readonly IUnitOfWork _unitOfWork;

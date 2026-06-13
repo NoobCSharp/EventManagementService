@@ -7,7 +7,7 @@ using Domain.Exceptions;
 
 namespace Application.Services
 {
-    public class BookingService
+    public class BookingService : IBookingService
     {
         private readonly IEventRepository _eventRepository;
         private readonly IBookingRepository _bookingRepository;
