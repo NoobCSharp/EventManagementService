@@ -1,4 +1,4 @@
-﻿using EventManagementService.Exceptions;
+﻿using Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Middlewares.ExceptionMiddleware
@@ -51,26 +51,30 @@ namespace EventManagementService.Middlewares.ExceptionMiddleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
+            int statusCode = ex switch
+            {
+                BadRequestException => StatusCodes.Status400BadRequest,
+                NotFoundException => StatusCodes.Status404NotFound,
+                NoAvailableSeatsException => StatusCodes.Status409Conflict,
+                DomainException => StatusCodes.Status400BadRequest,
+                _ => StatusCodes.Status500InternalServerError
+            };
+
             ProblemDetails problem;
-            int statusCode;
 
             if (ex is DomainException domainEx)
             {
-                statusCode = domainEx.StatusCode;
-
                 problem = new ProblemDetails
                 {
-                    Status = domainEx.StatusCode,
+                    Status = statusCode,
                     Title = domainEx.Title,
                     Detail = domainEx.Message
                 };
 
-                _logger.LogInformation(ex.Message);
+                _logger.LogWarning(ex.Message, "Domain exception occurred");
             }
             else
             {
-                statusCode = StatusCodes.Status500InternalServerError;
-
                 problem = new ProblemDetails
                 {
                     Status = statusCode,

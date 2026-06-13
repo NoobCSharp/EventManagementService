@@ -1,6 +1,21 @@
 # EventManagementService
 Сервис управления мероприятиями на ASP.NET Core Web API
 
+## Архитектура проекта
+Проект построен по принципам Clean Architecture и разделён на несколько слоёв
+
+Solution Structure
+
+каталог src/
+EventManagementService                      # Точка входа (Web API)
+Application                                 # Бизнес-логика приложения
+Domain                                      # Доменные сущности и контракты
+Infrastructure                              # Работа с БД и внешними сервисами
+
+каталог tests/
+EventManagementService.Tests                # Unit-тесты
+EventManagementService.IntegrationTests     # Интеграционные тесты
+
 ## Требования
 Для запуска приложения необходимо:
 
@@ -20,24 +35,26 @@
 
 ## Управление схемой базы данных
 
-Схема базы данных управляется с помощью миграций Entity Framework Core.
+Миграции находятся в проекте `Infrastructure`
 
 ## Создание новой миграции
 
+Из корня решения:
+
 ``` bash
-dotnet ef migrations add MigrationName
+dotnet ef migrations add MigrationName --project src/Infrastructure --startup-project src/EventManagementService
 ```
 
 ## Применение миграций к базе данных
 
 ``` bash
-dotnet ef database update
+dotnet ef database update --project src/Infrastructure --startup-project src/EventManagementService
 ```
 
 ## Удаление последней миграции
 
 ``` bash
-dotnet ef migrations remove
+dotnet ef migrations remove --project src/Infrastructure --startup-project src/EventManagementService
 ```
 
 ## Сборка проекта
@@ -49,7 +66,7 @@ dotnet build
 ## Запуск проекта
 
 ``` bash
-dotnet run
+dotnet run --project src/EventManagementService
 ```
 
 ## Запуск всех тестов
@@ -67,10 +84,10 @@ dotnet test
  1. Установить Docker
  2. Запустить Docker Desktop / Docker Engine
 
-После этого можно запускать тесты:
+## Запуск интеграционных тестов
 
 ``` bash
-dotnet test
+dotnet test tests/EventManagementService.IntegrationTests
 ```
 
 Интеграционные тесты проверяют:
@@ -94,8 +111,11 @@ Unit-тесты:
    - Позволяет быстро выполнять unit-тесты
    - Изолирует тесты друг от друга
 
-## Запуск конкретного теста, например:
-`dotnet test --filter "AddEvent_ShouldAddEvent"`
+## Запуск Unit тестов
+
+``` bash
+dotnet test tests/EventManagementService.UnitTests
+```
 
 ## Тестирование API проекта после запуска
 Swagger:
@@ -211,7 +231,7 @@ http://localhost:5169/swagger/index.html
 
 ### Фоновая обработка броней
 
-За обработку ожидающих броней отвечает `BookingProcessingService`.
+За обработку ожидающих броней отвечает `BookingProcessorService`.
 Логика обработки:
 
  1. Сервис периодически (в цикле) вызывает метод `ProcessBookingAsync`
@@ -245,7 +265,7 @@ http://localhost:5169/swagger/index.html
 }
 ```
 
-3. Подождать пока фоновый сервис `BookingProcessingService` обработает бронь
+3. Подождать пока фоновый сервис `BookingProcessorService` обработает бронь
 4. Получить бронь по Id:
    - `GET /bookings/{id}` теперь status будет `Confirmed` и `ProcessedAt` заполнен
 
