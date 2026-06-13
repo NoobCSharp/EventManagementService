@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace Application.Dtos.EventDtos
+﻿namespace Application.Dtos.EventDtos
 {
     public record EventDtoRequest
     {
