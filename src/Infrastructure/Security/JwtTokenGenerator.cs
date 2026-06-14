@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces;
-using Microsoft.Extensions.Options;
+using Domain.Enums;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,13 +16,13 @@ namespace Infrastructure.Security
             _options = options;
         }
 
-        public string GenerateToken(Guid userId, string login, string role)
+        public string GenerateToken(Guid userId, string login, Role role)
         {
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, login),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Secret));

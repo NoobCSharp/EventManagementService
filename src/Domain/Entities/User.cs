@@ -22,6 +22,10 @@ namespace Domain.Entities
         /// <summary>
         /// Роль пользователя, определяющая его права доступа.
         /// </summary>
-        public required Roles Role { get; set; }
+        public required Role Role { get; set; }
+
+        public User()
+        {
+        }
     }
 }

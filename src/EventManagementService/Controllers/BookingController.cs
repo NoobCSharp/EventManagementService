@@ -1,9 +1,14 @@
 ﻿using Application.Dtos.BookingDtos;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using EventManagementService.Extensions;
 
 namespace EventManagementService.Controllers
 {
+    [Authorize]
     [ApiController]
     public class BookingController : ControllerBase
     {
@@ -12,29 +17,6 @@ namespace EventManagementService.Controllers
         public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
-        }
-
-        /// <summary>
-        /// Метод создает бронирование для события.
-        /// </summary>
-        /// <param name="id">Идентификатор события для добавления брони</param>
-        /// <returns>Созданная бронь и заголовок Location, 
-        /// указывающий на метод получения брони по Id.</returns>
-        /// <response code="202">Бронь успешно создана</response>
-        /// <response code="404">Событие не найдено</response>
-        /// <response code="409">Нет доступных мест на событие</response>
-        [HttpPost("events/{id}/book")]
-        [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status202Accepted)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id, CancellationToken cancellationToken = default)
-        {
-            var bookingDtoResponse = await _bookingService.CreateBookingAsync(id, cancellationToken);
-
-            return AcceptedAtAction(
-                nameof(GetBookingById),
-                new { id = bookingDtoResponse.BookingId },
-                bookingDtoResponse);
         }
 
         /// <summary>
@@ -52,6 +34,43 @@ namespace EventManagementService.Controllers
             var bookingDtoResponse = await _bookingService.GetBookingByIdAsync(id, cancellationToken);
 
             return Ok(bookingDtoResponse);
+        }
+
+        /// <summary>
+        /// Метод создает бронирование для события.
+        /// </summary>
+        /// <param name="id">Идентификатор события для добавления брони</param>
+        /// <returns>Созданная бронь и заголовок Location, 
+        /// указывающий на метод получения брони по Id.</returns>
+        /// <response code="202">Бронь успешно создана</response>
+        /// <response code="404">Событие не найдено</response>
+        /// <response code="409">Нет доступных мест на событие</response>
+        [HttpPost("events/{id}/book")]
+        [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status202Accepted)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id, CancellationToken cancellationToken = default)
+        {
+            var userId = ClaimsPrincipalExtensions.GetUserId(User);
+
+            var bookingDtoResponse = await _bookingService.CreateBookingAsync(id, userId, cancellationToken);
+
+            return AcceptedAtAction(
+                nameof(GetBookingById),
+                new { id = bookingDtoResponse.BookingId },
+                bookingDtoResponse);
+        }
+
+        [Authorize]
+        [HttpDelete("bookings/{id}")]
+        public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken = default)
+        {
+            var userId = ClaimsPrincipalExtensions.GetUserId(User);
+            var role = ClaimsPrincipalExtensions.GetUserRole(User);
+
+            await _bookingService.RemoveBookingAsync(id, userId, role, cancellationToken);
+
+            return NoContent();
         }
     }
 }

@@ -4,6 +4,7 @@
 # docker compose -f .\src\EventManagementService\docker-compose.yml up -d (команда поднятия сервера)
 # docker compose -f .\src\EventManagementService\docker-compose.yml down (команда остановка сервера)
 # docker compose -f .\src\EventManagementService\docker-compose.yml down -v (команда полной остановка и очистки сервера)
+
 services:
   postgres:
     image: postgres:16

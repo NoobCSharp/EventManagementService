@@ -1,7 +1,9 @@
-﻿namespace Application.Interfaces
+﻿using Domain.Enums;
+
+namespace Application.Interfaces
 {
     public interface IJwtTokenGenerator
     {
-        string GenerateToken(Guid userId, string login, string role);
+        string GenerateToken(Guid userId, string login, Role role);
     }
 }

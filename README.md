@@ -29,7 +29,7 @@ EventManagementService.IntegrationTests     # Интеграционные те�
 
 ``` json
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=EventDb;Username=postgres;Password=your_password"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=your_password"
   }
 ```
 

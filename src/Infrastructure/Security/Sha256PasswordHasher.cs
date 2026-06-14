@@ -8,19 +8,13 @@ namespace Infrastructure.Security
     {
         public string Hash(string password)
         {
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Пароль не может быть пустым.", nameof(password));
-
-            byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
 
             return Convert.ToHexString(bytes);
         }
 
         public bool Verify(string password, string passwordHash)
         {
-            if (passwordHash is null)
-                throw new ArgumentNullException(nameof(passwordHash));
-
             string computedHash = Hash(password);
 
             return string.Equals(computedHash, passwordHash, StringComparison.OrdinalIgnoreCase);
