@@ -72,10 +72,12 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <param name="id">Идентификатор события для дальнейшей отмены</param>
         /// <response code="204">Бронь успешно отменена</response>
+        /// <response code="400">Событие уже началось или окончено или бронь уже отменена</response>
         /// <response code="403">Не достаточно прав</response>
         /// <response code="404">Бронь не найдена</response>
         [HttpDelete("bookings/{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken = default)
@@ -83,7 +85,7 @@ namespace EventManagementService.Controllers
             var userId = ClaimsPrincipalExtensions.GetUserId(User);
             var userRole = ClaimsPrincipalExtensions.GetUserRole(User);
 
-            await _bookingService.RemoveBookingAsync(id, userId, userRole, cancellationToken);
+            await _bookingService.CancelBookingAsync(id, userId, userRole, cancellationToken);
 
             return NoContent();
         }

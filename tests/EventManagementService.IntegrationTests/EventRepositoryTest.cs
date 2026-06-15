@@ -326,8 +326,17 @@ namespace EventManagementService.IntegrationTests
 
             await using var context = _fixture.CreateContext();
 
+            var userRepository = new UserRepository(context);
             var eventRepository = new EventRepository(context);
             var bookingRepository = new BookingRepository(context);
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                Login = "Test User",
+                PasswordHash = "abcd",
+                Role = Role.User
+            };
 
             var @event = new Event
             {
@@ -344,6 +353,7 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 Event = @event,
                 CreatedAt = DateTime.UtcNow,
                 Status = BookingStatus.Pending
@@ -353,14 +363,16 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 Event = @event,
                 CreatedAt = DateTime.UtcNow,
                 Status = BookingStatus.Pending
             };
 
             // Act
+            await userRepository.AddUserAsync(user);
             await eventRepository.AddEventAsync(@event);
-
+            
             await bookingRepository.CreateBookingAsync(bookingOne);
             await bookingRepository.CreateBookingAsync(bookingTwo);
 

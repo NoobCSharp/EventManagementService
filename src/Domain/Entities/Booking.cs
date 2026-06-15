@@ -55,7 +55,6 @@ namespace Domain.Entities
             ProcessedAt = processedAt;
         }
 
-        // TODO Еще подумать над этим методом, нужна защита от повторного вызова, например, если бронь уже подтверждена или отклонена, то нельзя ее отменить
         public void Cancel(DateTime processedAt)
         {
             Status = BookingStatus.Cancelled;

@@ -34,10 +34,5 @@ namespace Infrastructure.Repositories
         {
             return _appDbContext.Bookings.CountAsync(b => b.UserId == userId && b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed, cancellationToken);
         }
-
-        public void RemoveBooking(Booking booking)
-        {
-           _appDbContext.Bookings.Remove(booking);
-        }
     }
 }

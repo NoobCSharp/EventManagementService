@@ -10,7 +10,7 @@ namespace EventManagementService.IntegrationTests
 
         public PostgreSqlContainerFixture()
         {
-            Container = new PostgreSqlBuilder("postgres:16-alpine").Build();
+            Container = new PostgreSqlBuilder("postgres:16").Build();
         }
 
         public async Task InitializeAsync()
@@ -45,7 +45,7 @@ namespace EventManagementService.IntegrationTests
             await using var context = CreateContext();
 
             await context.Database.ExecuteSqlRawAsync(
-                "TRUNCATE TABLE \"Bookings\", \"Events\" RESTART IDENTITY CASCADE");
+                "TRUNCATE TABLE \"Users\", \"Bookings\", \"Events\" RESTART IDENTITY CASCADE");
         }
     }
 }

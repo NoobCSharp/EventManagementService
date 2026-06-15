@@ -46,7 +46,7 @@ namespace Application.Services
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
                 if (existingEvent.EndAt <= DateTime.UtcNow)
-                    throw new EventAlreadyStartedException("Невозможно забронировать прошедшее или уже начавшееся событие!");
+                    throw new EventAlreadyStartedException("Невозможно забронировать начавшееся или оконченное событие!");
 
                 if (!existingEvent.TryReserveSeats())
                     throw new NoAvailableSeatsException("Нет доступных мест для бронирования на данное событие!");
@@ -78,9 +78,9 @@ namespace Application.Services
             }
         }
 
-        public async Task RemoveBookingAsync(Guid bookingId, Guid userId, Role role, CancellationToken cancellationToken = default)
+        public async Task CancelBookingAsync(Guid bookingId, Guid userId, Role role, CancellationToken cancellationToken = default)
         {
-            Booking? booking = await _bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
+            var booking = await _bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
 
             if (booking is null)
                 throw new NotFoundException("Бронирование по указанному идентификатору не найдено!");
@@ -88,7 +88,20 @@ namespace Application.Services
             if (role is not Role.Admin && booking.UserId != userId)
                 throw new BookingAccessDeniedException("У пользователя не достаточно прав на выполнение данной операции!");
 
-            _bookingRepository.RemoveBooking(booking);
+            if (booking.Status is BookingStatus.Cancelled)
+                throw new BadRequestException("Бронь уже отменена!");
+
+            var @event = await _eventRepository.GetEventByIdAsync(booking.EventId, cancellationToken);
+
+            if (@event is null)
+                throw new NotFoundException("Событие по указанному идентификатору не найдено!");
+
+            if (@event.StartAt <= DateTime.UtcNow)
+                throw new EventAlreadyStartedException("Невозможно отменить бронь на начавшееся или оконченное событие!");
+
+            booking.Status = BookingStatus.Cancelled;
+
+            @event.ReleaseSeats();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }

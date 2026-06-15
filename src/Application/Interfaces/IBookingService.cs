@@ -53,7 +53,9 @@ namespace Application.Interfaces
         /// Если бронь не найдена, бросает исключение NotFoundException.
         /// Если пользователь пытается отменить чужую бронь без прав администратора,
         /// бросает исключение BookingAccessDeniedException.
+        /// Если бронь уже отменена, бросает исключение BadRequestException.
+        /// Если событие, связанное с бронью, уже началось, бросает исключение EventAlreadyStartedException.
         /// </remarks>
-        Task RemoveBookingAsync(Guid bookingId, Guid userId, Role role, CancellationToken cancellationToken = default);
+        Task CancelBookingAsync(Guid bookingId, Guid userId, Role role, CancellationToken cancellationToken = default);
     }
 }

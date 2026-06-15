@@ -28,6 +28,7 @@ namespace EventManagementService
             });
 
             builder.Services.AddEndpointsApiExplorer();
+
             builder.Services.AddSwaggerGen(options =>
             {
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -35,9 +36,23 @@ namespace EventManagementService
                     Name = "Authorization",
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http,
                     In = ParameterLocation.Header,
-                    
+                });
+
+                options.AddSecurityRequirement(document =>
+                {
+                    var securityRequirement = new OpenApiSecurityRequirement();
+                    var securitySchemeReference = new OpenApiSecuritySchemeReference("Bearer", document);
+
+                    securityRequirement.Add(securitySchemeReference, new List<string>());
+
+                    return securityRequirement;
+                });
+
+                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
                 });
             });
 

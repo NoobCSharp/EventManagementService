@@ -30,7 +30,7 @@ namespace Application.Services
             var isValid = _passwordHasher.Verify(request.Password, existingUser.PasswordHash);
 
             if (!isValid)
-                throw new BadRequestException("Неверный пароль!");
+                throw new BadRequestException("Неверный логин или пароль!");
 
             return _jwtTokenGenerator.GenerateToken(existingUser.UserId, existingUser.Login, existingUser.Role);
         }

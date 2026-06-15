@@ -42,13 +42,5 @@ namespace Application.Interfaces
         /// Количество активных броней для указанного пользователя.
         /// </returns>
         Task<int> GetActiveBookingsCountAsync(Guid userId, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Удаляет бронь из хранилища данных.
-        /// </summary>
-        /// <param name="booking">
-        /// Бронь, которую необходимо удалить.
-        /// </param>
-        void RemoveBooking(Booking booking);
     }
 }
