@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
 {
+    /// <summary>
+    /// Контроллер авторизации и регистрации пользователей.  
+    /// </summary>
     [ApiController]
     [AllowAnonymous]
     [Route("auth")]

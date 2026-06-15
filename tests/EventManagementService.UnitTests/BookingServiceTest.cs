@@ -6,6 +6,7 @@ using Domain.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using System.ComponentModel.DataAnnotations;
 
 namespace EventManagementService.UnitTests
 {
@@ -15,7 +16,7 @@ namespace EventManagementService.UnitTests
 
         /// <summary>
         /// Проверяет, что при создании брони она имеет корректные данные
-        /// статуса и привязана к конкретному событию по Id
+        /// статуса и привязана к конкретному событию и пользователю по Id
         /// </summary>
         [Fact]
         public async Task AddBooking_Should_AddBooking()
@@ -25,7 +26,8 @@ namespace EventManagementService.UnitTests
             var bookingRepositoryMock = new Mock<IBookingRepository>();
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
-            var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
+            var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -44,7 +46,7 @@ namespace EventManagementService.UnitTests
             var service = new BookingService(eventRepositoryMock.Object, bookingRepositoryMock.Object, unitOfWorkMock.Object);
 
             // Act (действие)
-            var response = await service.CreateBookingAsync(eventId);
+            var response = await service.CreateBookingAsync(eventId, userId);
 
             // Assert (проверка)
             response.Should().NotBeNull();
@@ -55,8 +57,9 @@ namespace EventManagementService.UnitTests
             bookingRepositoryMock.Verify(
                 r => r.CreateBookingAsync(
                     It.Is<Booking>(
-                        b => b.EventId == eventId &&
-                        b.Status == BookingStatus.Pending)),
+                        b => b.EventId == eventId 
+                        && b.UserId == userId 
+                        && b.Status == BookingStatus.Pending)),
                 Times.Once);
 
             unitOfWorkMock.Verify(
@@ -65,7 +68,7 @@ namespace EventManagementService.UnitTests
         }
 
         /// <summary>
-        /// Проверяет, что можно создать несколько броней для одного события,
+        /// Проверяет, что можно создать несколько броней одним пользователем для одного события,
         /// и каждая имеет уникальный Id и статус Pending.
         /// </summary>
         [Fact]
@@ -76,7 +79,8 @@ namespace EventManagementService.UnitTests
             var bookingRepositoryMock = new Mock<IBookingRepository>();
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
-            var eventId = Guid.Parse("1F9619FF-8B86-D011-B42D-00C04FC964FF");
+            var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -95,8 +99,8 @@ namespace EventManagementService.UnitTests
             var service = new BookingService(eventRepositoryMock.Object, bookingRepositoryMock.Object, unitOfWorkMock.Object);
 
             // Act (действие)
-            var bookingFirst = await service.CreateBookingAsync(eventId);
-            var bookingLast = await service.CreateBookingAsync(eventId);
+            var bookingFirst = await service.CreateBookingAsync(eventId, userId);
+            var bookingLast = await service.CreateBookingAsync(eventId, userId);
 
             // Assert (проверка)
             bookingFirst.EventId.Should().Be(eventId);
@@ -110,8 +114,9 @@ namespace EventManagementService.UnitTests
             bookingRepositoryMock.Verify(
                 r => r.CreateBookingAsync(
                     It.Is<Booking>(b =>
-                        b.EventId == eventId &&
-                        b.Status == BookingStatus.Pending)),
+                        b.EventId == eventId 
+                        && b.UserId == userId
+                        && b.Status == BookingStatus.Pending)),
                 Times.Exactly(2));
 
             unitOfWorkMock.Verify(
@@ -131,6 +136,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -148,6 +154,7 @@ namespace EventManagementService.UnitTests
             {
                  BookingId = bookingId,
                  EventId = eventId,
+                 UserId = userId, 
                  Event = fakeEvent,
                  CreatedAt = DateTime.UtcNow,
                  ProcessedAt = DateTime.UtcNow,
@@ -168,6 +175,8 @@ namespace EventManagementService.UnitTests
 
             response.BookingId.Should().Be(bookingId);
             response.EventId.Should().Be(eventId);
+            response.UserId.Should().Be(userId);
+
             response.Status.Should().Be(BookingStatus.Pending);
 
             bookingRepositoryMock.Verify(
@@ -187,6 +196,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -205,7 +215,7 @@ namespace EventManagementService.UnitTests
             var service = new BookingService(eventRepositoryMock.Object, bookingRepositoryMock.Object, unitOfWorkMock.Object);
 
             // Act (действие)
-            var response = await service.CreateBookingAsync(eventId);
+            var response = await service.CreateBookingAsync(eventId, userId);
 
             // Assert (проверка)
             fakeEvent.AvailableSeats.Should().Be(9);
@@ -235,6 +245,7 @@ namespace EventManagementService.UnitTests
             var limit = 5;
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid(); 
 
             var fakeEvent = new Event
             {
@@ -256,7 +267,7 @@ namespace EventManagementService.UnitTests
             var tasks = Enumerable.Range(0, limit)
                 .Select(_ => Task.Run(async () =>
                 {
-                    return await service.CreateBookingAsync(eventId);
+                    return await service.CreateBookingAsync(eventId, userId);
                 }));
 
             var results = await Task.WhenAll(tasks);
@@ -298,6 +309,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -322,7 +334,7 @@ namespace EventManagementService.UnitTests
                 {
                     try
                     {
-                        await service.CreateBookingAsync(eventId);
+                        await service.CreateBookingAsync(eventId, userId);
                         return (Success: true, Exception: (Exception?)null);
                     }
                     catch (Exception ex)
@@ -359,6 +371,7 @@ namespace EventManagementService.UnitTests
 
             var eventId = Guid.NewGuid();
             var bookingId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -374,6 +387,7 @@ namespace EventManagementService.UnitTests
             {
                 BookingId = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 Status = BookingStatus.Pending,
@@ -413,6 +427,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -430,6 +445,7 @@ namespace EventManagementService.UnitTests
             {
                 BookingId = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = DateTime.UtcNow,
@@ -447,11 +463,11 @@ namespace EventManagementService.UnitTests
             var service = new BookingService(eventRepositoryMock.Object, bookingRepositoryMock.Object, unitOfWorkMock.Object);
 
             // Act (действие)
-            var firstResult = await service.CreateBookingAsync(eventId);
+            var firstResult = await service.CreateBookingAsync(eventId, userId);
 
             fakeEvent.ReleaseSeats();
 
-            var secondResult = await service.CreateBookingAsync(eventId);
+            var secondResult = await service.CreateBookingAsync(eventId, userId);
 
             // Assert (проверка)
             firstResult.Should().NotBeNull();
@@ -483,6 +499,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -500,6 +517,7 @@ namespace EventManagementService.UnitTests
             {
                 BookingId = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = DateTime.UtcNow,
@@ -524,7 +542,7 @@ namespace EventManagementService.UnitTests
                 {
                     try
                     {
-                        await service.CreateBookingAsync(eventId);
+                        await service.CreateBookingAsync(eventId, userId);
                         return (Success: true, Exception: (Exception?)null);
                     }
                     catch (Exception ex)
@@ -564,6 +582,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -581,6 +600,7 @@ namespace EventManagementService.UnitTests
             {
                 BookingId = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = DateTime.UtcNow,
@@ -603,7 +623,7 @@ namespace EventManagementService.UnitTests
             var tasks = Enumerable.Range(0, requestsCount)
                 .Select(_ => Task.Run(async () =>
                 {
-                    return await service.CreateBookingAsync(eventId);
+                    return await service.CreateBookingAsync(eventId, userId);
                 }));
 
             var results = await Task.WhenAll(tasks);
@@ -631,6 +651,7 @@ namespace EventManagementService.UnitTests
 
             var bookingId = Guid.NewGuid();
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -646,6 +667,7 @@ namespace EventManagementService.UnitTests
             {
                 BookingId = bookingId,
                 EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 Status = BookingStatus.Pending
@@ -663,7 +685,11 @@ namespace EventManagementService.UnitTests
                 .Setup(r => r.SaveChangesAsync(default))
                 .ReturnsAsync(1);
 
-            var processor = new BookingProcessorService(bookingRepositoryMock.Object, eventRepositoryMock.Object, unitOfWorkMock.Object, NullLogger<BookingProcessorService>.Instance);
+            var processor = new BookingProcessorService(
+                bookingRepositoryMock.Object, 
+                eventRepositoryMock.Object, 
+                unitOfWorkMock.Object, 
+                NullLogger<BookingProcessorService>.Instance);
 
             // Act (действие)
             await processor.ProcessBookingAsync(bookingId);
@@ -725,6 +751,7 @@ namespace EventManagementService.UnitTests
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             eventRepositoryMock
                 .Setup(r => r.GetEventByIdAsync(eventId))
@@ -737,7 +764,7 @@ namespace EventManagementService.UnitTests
 
             // Assert (проверка)
             await bookingService
-                .Invoking(s => s.CreateBookingAsync(eventId))
+                .Invoking(s => s.CreateBookingAsync(eventId, userId))
                 .Should()
                 .ThrowAsync<NotFoundException>();
         }
@@ -754,7 +781,8 @@ namespace EventManagementService.UnitTests
             var bookingRepositoryMock = new Mock<IBookingRepository>();
             var unitOfWorkMock = new Mock<IUnitOfWork>();
 
-            var eventId = Guid.Parse("6F9619FF-8B86-D011-B42D-00C04FC964FF");
+            var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -777,9 +805,157 @@ namespace EventManagementService.UnitTests
 
             // Assert (проверка)
             await bookingService
-                .Invoking(s => s.CreateBookingAsync(eventId))
+                .Invoking(s => s.CreateBookingAsync(eventId, userId))
                 .Should()
                 .ThrowAsync<NoAvailableSeatsException>();
+        }
+
+        /// <summary>
+        /// Проверяет, что при попытке забронировать прошедшее или начавшееся событие
+        /// выбрасывается EventAlreadyStartedException.
+        /// </summary>
+        [Fact]
+        public async Task CreateBookingAsync_WhenEventAlreadyStarted_ShouldThrow_EventAlreadyStartedException()
+        {
+            // Arrange (подготовка)
+            var eventRepositoryMock = new Mock<IEventRepository>();
+            var bookingRepositoryMock = new Mock<IBookingRepository>();
+            var unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+
+            var startAt = default(DateTime);
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = startAt,
+                EndAt = startAt.AddDays(1),
+                TotalSeats = 10,
+                AvailableSeats = 0
+            };
+
+            eventRepositoryMock
+                .Setup(r => r.GetEventByIdAsync(eventId))
+                .ReturnsAsync(fakeEvent);
+
+            var bookingService = new BookingService(
+                eventRepositoryMock.Object,
+                bookingRepositoryMock.Object,
+                unitOfWorkMock.Object);
+
+            // Assert (проверка)
+            await bookingService
+                .Invoking(s => s.CreateBookingAsync(eventId, userId))
+                .Should()
+                .ThrowAsync<EventAlreadyStartedException>();
+        }
+
+        /// <summary>
+        /// Проверяет, что при достижении пользователем лимита активных броней
+        /// создание следующей брони выбрасывает ActiveBookingLimitExceededException.
+        /// </summary>
+        [Fact]
+        public async Task CreateBookingAsync_WhenBookingLimitIsReached_ShouldThrow_ActiveBookingLimitExceededException()
+        {
+            // Arrange (подготовка)
+            var eventRepositoryMock = new Mock<IEventRepository>();
+            var bookingRepositoryMock = new Mock<IBookingRepository>();
+            var unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 15,
+                AvailableSeats = 15
+            };
+
+            eventRepositoryMock
+                .Setup(r => r.GetEventByIdAsync(eventId))
+                .ReturnsAsync(fakeEvent);
+
+            bookingRepositoryMock.Setup(
+                r => r.GetActiveBookingsCountAsync(userId))
+                .ReturnsAsync(10);
+
+            var bookingService = new BookingService(
+                eventRepositoryMock.Object,
+                bookingRepositoryMock.Object,
+                unitOfWorkMock.Object);
+
+            // Assert (проверка)
+            await bookingService
+                .Invoking(s => s.CreateBookingAsync(eventId, userId))
+                .Should()
+                .ThrowAsync<ActiveBookingLimitExceededException>();
+        }
+
+        /// <summary>
+        /// Проверяет, что лимиты активных броней разных пользователей
+        /// не влияют друг на друга.
+        /// </summary>
+        [Fact]
+        public async Task CreateBookingAsync_WhenAnotherUserReachedLimit_ShouldCreateBookingSuccessfully()
+        {
+            // Arrange (подготовка)
+            var eventRepositoryMock = new Mock<IEventRepository>();
+            var bookingRepositoryMock = new Mock<IBookingRepository>();
+            var unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            var eventId = Guid.NewGuid();
+            var firstUserId = Guid.NewGuid();
+            var secondUserId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 15,
+                AvailableSeats = 15
+            };
+
+            eventRepositoryMock
+                .Setup(r => r.GetEventByIdAsync(eventId))
+                .ReturnsAsync(fakeEvent);
+
+            // У первого пользователя лимит достигнут.
+            bookingRepositoryMock
+                .Setup(r => r.GetActiveBookingsCountAsync(firstUserId))
+                .ReturnsAsync(10);
+
+            // У второго пользователя активных броней нет.
+            bookingRepositoryMock
+                .Setup(r => r.GetActiveBookingsCountAsync(secondUserId))
+                .ReturnsAsync(0);
+
+            var bookingService = new BookingService(
+                eventRepositoryMock.Object,
+                bookingRepositoryMock.Object,
+                unitOfWorkMock.Object);
+
+            // Act
+            var booking = await bookingService.CreateBookingAsync(eventId, secondUserId);
+
+            // Assert
+            booking.Should().NotBeNull();
+
+            bookingRepositoryMock.Verify(
+                r => r.CreateBookingAsync(It.IsAny<Booking>()),
+                Times.Once);
+
+            unitOfWorkMock.Verify(
+                u => u.SaveChangesAsync(),
+                Times.Once);
         }
 
         #endregion

@@ -45,7 +45,7 @@ namespace Application.Services
                 if (existingEvent is null)
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
-                if (existingEvent.StartAt <= DateTime.UtcNow)
+                if (existingEvent.EndAt <= DateTime.UtcNow)
                     throw new EventAlreadyStartedException("Невозможно забронировать прошедшее или уже начавшееся событие!");
 
                 if (!existingEvent.TryReserveSeats())
@@ -60,7 +60,7 @@ namespace Application.Services
                 {
                     BookingId = Guid.NewGuid(),
                     EventId = bookingId,
-                    UserId = Guid.NewGuid(), //TODO временное решение, пока нет авторизации и аутентификации
+                    UserId = userId,
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
                     ProcessedAt = null,

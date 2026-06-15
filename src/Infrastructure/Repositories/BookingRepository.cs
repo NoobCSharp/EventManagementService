@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories
 
         public Task<int> GetActiveBookingsCountAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            return _appDbContext.Bookings.CountAsync(b => b.UserId == userId && b.Status == BookingStatus.Pending && b.Status == BookingStatus.Confirmed, cancellationToken);
+            return _appDbContext.Bookings.CountAsync(b => b.UserId == userId && b.Status == BookingStatus.Pending || b.Status == BookingStatus.Confirmed, cancellationToken);
         }
 
         public void RemoveBooking(Booking booking)

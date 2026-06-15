@@ -15,6 +15,7 @@ namespace EventManagementService.UnitTests
         {
             // Arrange
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -32,7 +33,8 @@ namespace EventManagementService.UnitTests
             var fakeBooking = new Booking
             {
                 BookingId = bookingId,
-                EventId = Guid.NewGuid(),
+                EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
@@ -56,6 +58,7 @@ namespace EventManagementService.UnitTests
         {
             // Arrange
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -73,7 +76,8 @@ namespace EventManagementService.UnitTests
             var fakeBooking = new Booking
             {
                 BookingId = bookingId,
-                EventId = Guid.NewGuid(),
+                EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,

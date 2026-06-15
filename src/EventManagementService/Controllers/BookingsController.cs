@@ -6,6 +6,12 @@ using EventManagementService.Extensions;
 
 namespace EventManagementService.Controllers
 {
+    /// <summary>
+    /// Контроллер обработки броней.  
+    /// </summary>
+    /// <remarks>
+    /// Доступ: открыт для всех зарегистрированных пользователей и администраторов.
+    ///</remarks>
     [Authorize]
     [ApiController]
     public class BookingsController : ControllerBase
@@ -41,10 +47,12 @@ namespace EventManagementService.Controllers
         /// <returns>Созданная бронь и заголовок Location, 
         /// указывающий на метод получения брони по Id.</returns>
         /// <response code="202">Бронь успешно создана</response>
+        /// <response code="400">Событие уже началось или окончено</response>
         /// <response code="404">Событие не найдено</response>
-        /// <response code="409">Нет доступных мест на событие</response>
+        /// <response code="409">Нет доступных мест на событие или превышен лимит бронирований</response>   
         [HttpPost("events/{id}/book")]
         [ProducesResponseType(typeof(BookingDtoResponse), StatusCodes.Status202Accepted)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
         public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id, CancellationToken cancellationToken = default)
