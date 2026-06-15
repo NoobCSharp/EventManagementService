@@ -17,6 +17,6 @@ namespace Application.Dtos.UserDtos
         /// <summary>
         /// Роль пользователя, определяющая его права доступа.
         /// </summary>
-        public required Role Role { get; init; }
+        public Role Role { get; init; } = Role.User;
     }
 }

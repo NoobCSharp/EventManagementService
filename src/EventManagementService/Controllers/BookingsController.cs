@@ -2,19 +2,17 @@
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using EventManagementService.Extensions;
 
 namespace EventManagementService.Controllers
 {
     [Authorize]
     [ApiController]
-    public class BookingController : ControllerBase
+    public class BookingsController : ControllerBase
     {
         private readonly IBookingService _bookingService;
 
-        public BookingController(IBookingService bookingService)
+        public BookingsController(IBookingService bookingService)
         {
             _bookingService = bookingService;
         }
@@ -61,14 +59,23 @@ namespace EventManagementService.Controllers
                 bookingDtoResponse);
         }
 
-        [Authorize]
+        /// <summary>
+        /// Метод отменяет бронирование по идентификатору.
+        /// </summary>
+        /// <param name="id">Идентификатор события для дальнейшей отмены</param>
+        /// <response code="204">Бронь успешно отменена</response>
+        /// <response code="403">Не достаточно прав</response>
+        /// <response code="404">Бронь не найдена</response>
         [HttpDelete("bookings/{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken = default)
         {
             var userId = ClaimsPrincipalExtensions.GetUserId(User);
-            var role = ClaimsPrincipalExtensions.GetUserRole(User);
+            var userRole = ClaimsPrincipalExtensions.GetUserRole(User);
 
-            await _bookingService.RemoveBookingAsync(id, userId, role, cancellationToken);
+            await _bookingService.RemoveBookingAsync(id, userId, userRole, cancellationToken);
 
             return NoContent();
         }

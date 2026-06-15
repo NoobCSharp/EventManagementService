@@ -23,7 +23,7 @@ namespace Infrastructure.DataAccess.Configurations
                 .IsRequired();
 
             builder.Property(x => x.Role)
-                .IsRequired();
+                .IsRequired().HasConversion<string>();
         }
     }
 }

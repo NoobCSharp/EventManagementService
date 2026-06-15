@@ -1,7 +1,6 @@
 ﻿using Application.Dtos.UserDtos;
 using Application.Interfaces;
 using Domain.Entities;
-using Domain.Enums;
 using Domain.Exceptions;
 
 namespace Application.Services
@@ -21,7 +20,7 @@ namespace Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<string> LoginAsync(LoginUserRequest request)
+        public async Task<string> LoginUserAsync(LoginUserRequest request)
         {
             var existingUser = await _userRepository.GetUserByLoginAsync(request.Login);
 
@@ -36,7 +35,7 @@ namespace Application.Services
             return _jwtTokenGenerator.GenerateToken(existingUser.UserId, existingUser.Login, existingUser.Role);
         }
 
-        public async Task RegisterAsync(RegisterUserRequest request)
+        public async Task RegisterUserAsync(RegisterUserRequest request)
         {
             var existingUser = await _userRepository.GetUserByLoginAsync(request.Login);
 
@@ -48,7 +47,7 @@ namespace Application.Services
                 UserId = Guid.NewGuid(),
                 Login = request.Login,
                 PasswordHash = _passwordHasher.Hash(request.Password),
-                Role = Role.User
+                Role = request.Role,
             };
 
             await _userRepository.AddUserAsync(user);

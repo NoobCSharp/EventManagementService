@@ -22,16 +22,6 @@ namespace Application.Services
             _unitOfWork = unitOfWork;
         }
 
-        /// <summary>
-        /// Получает бронь по Id.
-        /// Если бронь не найдена, бросает исключение NotFoundException.
-        /// </summary>
-        /// <param name="bookingId">
-        /// Уникальный идентификатор брони.
-        /// </param>
-        /// <returns>
-        /// Объект брони из хранилища данных.
-        /// </returns>
         public async Task<BookingDtoResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
         {
             var existingBooking = await _bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
@@ -44,19 +34,6 @@ namespace Application.Services
             return bookingDtoResponse;
         }
 
-        /// <summary>
-        /// Создает бронь для указанного события по Id.
-        /// </summary>
-        /// <param name="bookingId">
-        /// Уникальный идентификатор события, к которому относится бронь.
-        /// </param>
-        /// <returns>
-        /// Объект брони.
-        /// </returns>
-        /// <remarks>
-        /// Если событие не найдено, бросает исключение NotFoundException.
-        /// Если нет доступных мест на событие, бросает исключение NoAvailableSeatsException
-        /// </remarks>
         public async Task<BookingDtoResponse> CreateBookingAsync(Guid bookingId, Guid userId, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync();
@@ -101,16 +78,6 @@ namespace Application.Services
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="bookingId"></param>
-        /// <param name="currentUserId"></param>
-        /// <param name="isAdmin"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        /// <exception cref="NotFoundException"></exception>
-        /// <exception cref="BookingAccessDeniedException"></exception>
         public async Task RemoveBookingAsync(Guid bookingId, Guid userId, Role role, CancellationToken cancellationToken = default)
         {
             Booking? booking = await _bookingRepository.GetBookingByIdAsync(bookingId, cancellationToken);
@@ -119,7 +86,7 @@ namespace Application.Services
                 throw new NotFoundException("Бронирование по указанному идентификатору не найдено!");
 
             if (role is not Role.Admin && booking.UserId != userId)
-                throw new BookingAccessDeniedException("У пользователя нет прав на выполнение данной операции!");
+                throw new BookingAccessDeniedException("У пользователя не достаточно прав на выполнение данной операции!");
 
             _bookingRepository.RemoveBooking(booking);
 

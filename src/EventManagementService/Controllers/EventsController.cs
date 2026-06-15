@@ -1,6 +1,7 @@
 ﻿using Application.Dtos.EventDtos;
 using Application.Filters;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
@@ -25,6 +26,7 @@ namespace EventManagementService.Controllers
         /// <returns>Объект EventDtoPaginatedResponse сформированный после фильтрации и пагинации.</returns>
         /// <response code="200">События успешно получены</response>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(EventDtoPaginatedResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<EventDtoPaginatedResponse>> GetAllEvents([FromQuery] EventFilter eventFilter, CancellationToken cancellationToken = default)
         {
@@ -41,6 +43,7 @@ namespace EventManagementService.Controllers
         /// <response code="200">Событие успешно найдено</response>
         /// <response code="404">Событие не найдено</response>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(EventDtoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<EventDtoResponse>> GetEventById(Guid id, CancellationToken cancellationToken = default)
@@ -53,15 +56,16 @@ namespace EventManagementService.Controllers
         /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
-        /// <param name="requestEventDto">Новый объект события.</param>
+        /// <param name="eventDtoRequest">Новый объект события.</param>
         /// <returns>Возвращает новый объект EventDtoResponse созданного события
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         /// <response code="201">Событие успешно создано</response>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(EventDtoResponse), StatusCodes.Status201Created)]
-        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
+        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {          
-            var eventDtoResponse = await _eventService.AddEventAsync(requestEventDto, cancellationToken);
+            var eventDtoResponse = await _eventService.AddEventAsync(eventDtoRequest, cancellationToken);
 
             return CreatedAtAction(
                 nameof(GetEventById),
@@ -78,10 +82,11 @@ namespace EventManagementService.Controllers
         /// <response code="400">Некорректные данные для обновления события</response>
         /// <response code="404">Событие не найдено</response>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
+        public async Task<ActionResult> UpdateEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {
             await _eventService.UpdateEventAsync(id, eventDtoRequest, cancellationToken);
             
@@ -95,6 +100,7 @@ namespace EventManagementService.Controllers
         /// <response code="204">Событие успешно удалено</response>
         /// <response code="404">Событие не найдено</response>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken cancellationToken = default)

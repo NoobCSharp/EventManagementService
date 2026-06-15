@@ -4,6 +4,7 @@ using EventManagementService.Middlewares.ExceptionMiddleware;
 using Infrastructure;
 using Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using System.Text.Json.Serialization;
 
 namespace EventManagementService
@@ -27,7 +28,19 @@ namespace EventManagementService
             });
 
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    Type = SecuritySchemeType.ApiKey,
+                    In = ParameterLocation.Header,
+                    
+                });
+            });
+
             builder.Services.AddOpenApi();
 
             // Регистрация сервисов приложения и репозиториев
@@ -48,7 +61,6 @@ namespace EventManagementService
             }
 
             app.UseExceptionHandlingMiddleware();
-            app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
@@ -60,6 +72,7 @@ namespace EventManagementService
             }
 
             app.MapControllers();
+
             app.Run();
         }
     }
