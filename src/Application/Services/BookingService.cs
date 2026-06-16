@@ -103,7 +103,7 @@ namespace Application.Services
             if (role is not Role.Admin && @event.StartAt <= DateTime.UtcNow)
                 throw new EventAlreadyStartedException("Невозможно отменить бронь для начавшегося или оконченного событие!");
 
-            booking.Status = BookingStatus.Cancelled;
+            booking.Cancel(DateTime.UtcNow);
 
             @event.ReleaseSeats();
 
