@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.Settings;
 using Infrastructure.DataAccess;
 using Infrastructure.Repositories;
 using Infrastructure.Security;
@@ -67,6 +68,8 @@ namespace Infrastructure
 
             services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddSingleton<IPasswordHasher, Sha256PasswordHasher>();
+            
+            services.Configure<BookingSettings>(configuration.GetSection("BookingSettings"));
 
             return services;
         }

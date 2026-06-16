@@ -1,9 +1,11 @@
 ﻿using Application.Dtos.BookingDtos;
 using Application.Interfaces;
 using Application.Mappers;
+using Application.Settings;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
+using Microsoft.Extensions.Options;
 
 namespace Application.Services
 {
@@ -12,14 +14,16 @@ namespace Application.Services
         private readonly IEventRepository _eventRepository;
         private readonly IBookingRepository _bookingRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly BookingSettings _bookingSettings;
 
         private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
-        public BookingService(IEventRepository eventRepository, IBookingRepository bookingRepository, IUnitOfWork unitOfWork)
+        public BookingService(IEventRepository eventRepository, IBookingRepository bookingRepository, IUnitOfWork unitOfWork, IOptions<BookingSettings> bookingSettings)
         {
             _eventRepository = eventRepository;
             _bookingRepository = bookingRepository;
             _unitOfWork = unitOfWork;
+            _bookingSettings = bookingSettings.Value;
         }
 
         public async Task<BookingDtoResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken = default)
@@ -53,8 +57,8 @@ namespace Application.Services
 
                 var activeBookingsCount = await _bookingRepository.GetActiveBookingsCountAsync(userId, cancellationToken);
 
-                if (activeBookingsCount >= 10)
-                    throw new ActiveBookingLimitExceededException("Превышен допустимый лимит активных броней!");
+                if (activeBookingsCount >= _bookingSettings.MaxActiveBookings)
+                    throw new ActiveBookingLimitExceededException($"Пользователь не может иметь более {_bookingSettings.MaxActiveBookings} активных броней.");       
 
                 var booking = new Booking
                 {
