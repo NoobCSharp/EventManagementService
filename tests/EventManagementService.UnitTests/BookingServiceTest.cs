@@ -1,10 +1,12 @@
 ﻿using Application.Interfaces;
 using Application.Services;
+using Application.Settings;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace EventManagementService.UnitTests
@@ -17,10 +19,16 @@ namespace EventManagementService.UnitTests
 
         private BookingService CreateBookingService()
         {
+            var bookingSettings = Options.Create(new BookingSettings
+            {
+                MaxActiveBookings = 10
+            });
+
             return new BookingService(
                 _eventRepositoryMock.Object,
                 _bookingRepositoryMock.Object,
-                _unitOfWorkMock.Object
+                _unitOfWorkMock.Object,
+                bookingSettings
             );
         }
 

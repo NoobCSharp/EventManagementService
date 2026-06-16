@@ -94,7 +94,7 @@ namespace EventManagementService.UnitTests
         }
 
         [Fact]
-        public async Task LoginUserAsync_InvalidPassword_ShouldThrow_BadRequestException()
+        public async Task LoginUserAsync_InvalidPassword_ShouldThrow_NotFoundException()
         {
             // Arrange
             var request = new LoginUserRequest
@@ -124,7 +124,7 @@ namespace EventManagementService.UnitTests
             // Assert (проверка)
             await service.Invoking(s => s.LoginUserAsync(request))
                 .Should()
-                .ThrowAsync<BadRequestException>();
+                .ThrowAsync<NotFoundException>();
         }
 
         #endregion
