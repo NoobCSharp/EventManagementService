@@ -408,11 +408,11 @@ namespace EventManagementService.UnitTests
         }
 
         /// <summary>
-        /// Проверяет, что при отмене брони статус изменяется на Canceled и
-        /// количество свободных мест у события восстанавливается.
+        /// Проверяет, что при отмене брони принадлежащей пользователю с ролью User 
+        /// статус брони изменяется на Cancelled и количество свободных мест у события восстанавливается
         /// </summary>
         [Fact]
-        public async Task CancelBooking_Should_ReleaseEventSeats()
+        public async Task CancelBooking_Should_ReleaseEventSeats_And_BookingStatus_ShouldBe_Cancelled()
         {
             // Arrange (подготовка)
             var eventId = Guid.NewGuid();
@@ -456,6 +456,55 @@ namespace EventManagementService.UnitTests
             booking.Status.Should().Be(BookingStatus.Cancelled);
 
             fakeEvent.AvailableSeats.Should().Be(1);
+        }
+
+        /// <summary>
+        /// Проверяет, что при отмене брони на прошедшее событие пользователем с ролью Admin 
+        /// статус брони изменяется на Cancelled
+        /// </summary>
+        [Fact]
+        public async Task CancellBookingAsync_WhenEventAlreadyStarted_WithUserRole_Admin_ShouldChange_BookingStatus_ToCancelled()
+        {
+            // Arrange (подготовка)
+            var eventId = Guid.NewGuid();
+            var bookingId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = default(DateTime),
+                EndAt = default(DateTime).AddDays(1),
+                TotalSeats = 1,
+                AvailableSeats = 0
+            };
+
+            var booking = new Booking
+            {
+                BookingId = bookingId,
+                EventId = eventId,
+                UserId = userId,
+                Event = fakeEvent,
+                CreatedAt = DateTime.UtcNow,
+                Status = BookingStatus.Pending,
+            };
+
+            _bookingRepositoryMock
+                .Setup(r => r.GetBookingByIdAsync(bookingId))
+                .ReturnsAsync(booking);
+
+            _eventRepositoryMock
+                .Setup(r => r.GetEventByIdAsync(eventId))
+                .ReturnsAsync(fakeEvent);
+
+            var service = CreateBookingService();
+
+            // Act (действие)
+            await service.CancelBookingAsync(bookingId, userId, Role.Admin);
+
+            // Assert (проверка)
+            booking.Status.Should().Be(BookingStatus.Cancelled);
         }
 
         /// <summary>
@@ -727,7 +776,7 @@ namespace EventManagementService.UnitTests
             fakeBooking.ProcessedAt.Should().BeAfter(fakeBooking.CreatedAt);
 
             _unitOfWorkMock.Verify(
-                x => x.SaveChangesAsync(It.IsAny<CancellationToken>()),
+                x => x.SaveChangesAsync(),
                 Times.Once);
         }
 
