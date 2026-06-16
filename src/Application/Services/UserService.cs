@@ -25,7 +25,7 @@ namespace Application.Services
             var existingUser = await _userRepository.GetUserByLoginAsync(request.Login);
 
             if (existingUser == null)
-                throw new NotFoundException("Пользователь не найден!");
+                throw new NotFoundException("Неверный логин или пароль!");
             
             var isValid = _passwordHasher.Verify(request.Password, existingUser.PasswordHash);
 
