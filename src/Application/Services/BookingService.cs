@@ -54,7 +54,7 @@ namespace Application.Services
                 var activeBookingsCount = await _bookingRepository.GetActiveBookingsCountAsync(userId, cancellationToken);
 
                 if (activeBookingsCount >= 10)
-                    throw new ActiveBookingLimitExceededException("Превышен допустимый лимит активных бронирований!");
+                    throw new ActiveBookingLimitExceededException("Превышен допустимый лимит активных броней!");
 
                 var booking = new Booking
                 {
@@ -97,7 +97,7 @@ namespace Application.Services
                 throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
             if (@event.StartAt <= DateTime.UtcNow)
-                throw new EventAlreadyStartedException("Невозможно отменить бронь на начавшееся или оконченное событие!");
+                throw new EventAlreadyStartedException("Невозможно отменить бронь для начавшегося или оконченного событие!");
 
             booking.Status = BookingStatus.Cancelled;
 

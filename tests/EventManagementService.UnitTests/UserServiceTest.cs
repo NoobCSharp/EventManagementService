@@ -72,7 +72,7 @@ namespace EventManagementService.UnitTests
         #region Unsuccessful scenarios for LoginUserAsync 
 
         [Fact]
-        public async Task LoginUserAsync_UserNotFound_ShouldThrowBadRequestException()
+        public async Task LoginUserAsync_UserNotFound_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
             var request = new LoginUserRequest
@@ -90,11 +90,11 @@ namespace EventManagementService.UnitTests
             // Assert (проверка)
             await service.Invoking(s => s.LoginUserAsync(request))
                 .Should()
-                .ThrowAsync<BadRequestException>();
+                .ThrowAsync<NotFoundException>();
         }
 
         [Fact]
-        public async Task LoginUserAsync_InvalidPassword_ShouldThrowBadRequestException()
+        public async Task LoginUserAsync_InvalidPassword_ShouldThrow_BadRequestException()
         {
             // Arrange
             var request = new LoginUserRequest
@@ -174,7 +174,7 @@ namespace EventManagementService.UnitTests
         #region Unsuccessful scenarios for RegisterUserAsync 
 
         [Fact]
-        public async Task RegisterUserAsync_UserAlreadyExists_ShouldThrowBadRequestException()
+        public async Task RegisterUserAsync_UserAlreadyExists_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
             var request = new RegisterUserRequest
