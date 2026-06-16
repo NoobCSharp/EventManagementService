@@ -100,7 +100,7 @@ namespace Application.Services
             if (@event is null)
                 throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
-            if (@event.StartAt <= DateTime.UtcNow)
+            if (role is not Role.Admin && @event.StartAt <= DateTime.UtcNow)
                 throw new EventAlreadyStartedException("Невозможно отменить бронь для начавшегося или оконченного событие!");
 
             booking.Status = BookingStatus.Cancelled;
