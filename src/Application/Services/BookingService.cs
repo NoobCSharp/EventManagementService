@@ -45,7 +45,7 @@ namespace Application.Services
                 if (existingEvent is null)
                     throw new NotFoundException("Событие по указанному идентификатору не найдено!");
 
-                if (existingEvent.EndAt <= DateTime.UtcNow)
+                if (existingEvent.StartAt <= DateTime.UtcNow)
                     throw new EventAlreadyStartedException("Невозможно забронировать начавшееся или оконченное событие!");
 
                 if (!existingEvent.TryReserveSeats())

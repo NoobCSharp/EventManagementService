@@ -41,8 +41,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 10,
                 AvailableSeats = 10
             };
@@ -90,8 +90,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 10,
                 AvailableSeats = 10
             };
@@ -198,8 +198,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 10,
                 AvailableSeats = 10
             };
@@ -243,8 +243,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 10,
                 AvailableSeats = 10
             };
@@ -304,8 +304,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 2,
                 AvailableSeats = 1
             };
@@ -465,8 +465,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 1,
                 AvailableSeats = 1
             };
@@ -532,8 +532,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 5,
                 AvailableSeats = 5
             };
@@ -611,8 +611,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 10,
                 AvailableSeats = 10
             };
@@ -739,8 +739,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 15,
                 AvailableSeats = 15
             };
@@ -842,8 +842,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 10,
                 AvailableSeats = 0
             };
@@ -912,8 +912,8 @@ namespace EventManagementService.UnitTests
             {
                 EventId = eventId,
                 Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
+                StartAt = DateTime.UtcNow.AddDays(1),
+                EndAt = DateTime.UtcNow.AddDays(2),
                 TotalSeats = 15,
                 AvailableSeats = 15
             };
