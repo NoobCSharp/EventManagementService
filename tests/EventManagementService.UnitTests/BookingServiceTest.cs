@@ -463,7 +463,7 @@ namespace EventManagementService.UnitTests
         /// статус брони изменяется на Cancelled
         /// </summary>
         [Fact]
-        public async Task CancellBookingAsync_WhenEventAlreadyStarted_WithUserRole_Admin_ShouldChange_BookingStatus_ToCancelled()
+        public async Task CancellBookingAsync_WhenEventAlreadyStarted_ShouldChange_BookingStatus_ToCancelled_WithUserRole_Admin()
         {
             // Arrange (подготовка)
             var eventId = Guid.NewGuid();
@@ -502,6 +502,58 @@ namespace EventManagementService.UnitTests
 
             // Act (действие)
             await service.CancelBookingAsync(bookingId, userId, Role.Admin);
+
+            // Assert (проверка)
+            booking.Status.Should().Be(BookingStatus.Cancelled);
+
+            fakeEvent.AvailableSeats.Should().Be(1);
+        }
+
+        /// <summary>
+        /// Проверяет, что при отмене брони на прошедшее событие пользователем с ролью Admin 
+        /// статус брони изменяется на Cancelled
+        /// </summary>
+        [Fact]
+        public async Task CancellBookingAsync_WithUserRole_Admin_CanCancelAnotherUsersBooking_WhenEventHasStarted()
+        {
+            // Arrange (подготовка)
+            var eventId = Guid.NewGuid();
+            var bookingId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var adminId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = default(DateTime),
+                EndAt = default(DateTime).AddDays(1),
+                TotalSeats = 5,
+                AvailableSeats = 4
+            };
+
+            var booking = new Booking
+            {
+                BookingId = bookingId,
+                EventId = eventId,
+                UserId = userId,
+                Event = fakeEvent,
+                CreatedAt = DateTime.UtcNow,
+                Status = BookingStatus.Pending,
+            };
+
+            _bookingRepositoryMock
+                .Setup(r => r.GetBookingByIdAsync(bookingId))
+                .ReturnsAsync(booking);
+
+            _eventRepositoryMock
+                .Setup(r => r.GetEventByIdAsync(eventId))
+                .ReturnsAsync(fakeEvent);
+
+            var service = CreateBookingService();
+
+            // Act (действие)
+            await service.CancelBookingAsync(bookingId, adminId, Role.Admin);
 
             // Assert (проверка)
             booking.Status.Should().Be(BookingStatus.Cancelled);

@@ -18,7 +18,7 @@ namespace EventManagementService.BackgroundServices
         /// </summary>
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Фоновая обработка броней запущен - {Time}", DateTime.Now);
+            _logger.LogInformation("Фоновая обработка броней запущена - {Time}", DateTime.Now);
 
             while (!cancellationToken.IsCancellationRequested)
             {
