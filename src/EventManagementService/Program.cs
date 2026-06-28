@@ -4,6 +4,7 @@ using EventManagementService.Middlewares.ExceptionMiddleware;
 using Infrastructure;
 using Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 using System.Text.Json.Serialization;
 
 namespace EventManagementService
@@ -27,7 +28,34 @@ namespace EventManagementService
             });
 
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    Type = SecuritySchemeType.Http,
+                    In = ParameterLocation.Header,
+                });
+
+                options.AddSecurityRequirement(document =>
+                {
+                    var securityRequirement = new OpenApiSecurityRequirement();
+                    var securitySchemeReference = new OpenApiSecuritySchemeReference("Bearer", document);
+
+                    securityRequirement.Add(securitySchemeReference, new List<string>());
+
+                    return securityRequirement;
+                });
+
+                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                });
+            });
+
             builder.Services.AddOpenApi();
 
             // Регистрация сервисов приложения и репозиториев
@@ -47,9 +75,9 @@ namespace EventManagementService
                 app.UseSwaggerUI();
             }
 
-            // Configure the HTTP request pipeline.
             app.UseExceptionHandlingMiddleware();
-            app.UseHttpsRedirection();
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             using (var scope = app.Services.CreateScope())
@@ -59,6 +87,7 @@ namespace EventManagementService
             }
 
             app.MapControllers();
+
             app.Run();
         }
     }

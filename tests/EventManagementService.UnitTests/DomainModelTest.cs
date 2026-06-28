@@ -15,6 +15,7 @@ namespace EventManagementService.UnitTests
         {
             // Arrange
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -32,7 +33,8 @@ namespace EventManagementService.UnitTests
             var fakeBooking = new Booking
             {
                 BookingId = bookingId,
-                EventId = Guid.NewGuid(),
+                EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
@@ -56,6 +58,7 @@ namespace EventManagementService.UnitTests
         {
             // Arrange
             var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
 
             var fakeEvent = new Event
             {
@@ -73,7 +76,8 @@ namespace EventManagementService.UnitTests
             var fakeBooking = new Booking
             {
                 BookingId = bookingId,
-                EventId = Guid.NewGuid(),
+                EventId = eventId,
+                UserId = userId,
                 Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
@@ -113,6 +117,49 @@ namespace EventManagementService.UnitTests
 
             // Assert
             fakeEvent.AvailableSeats.Should().Be(2);
+        }
+
+        /// <summary>
+        /// Проверяет, что Cancel устанавливает статус Cancelled
+        /// и заполняет время обработки.
+        /// </summary>
+        [Fact]
+        public async Task CancelBooking_Should_Set_StatusCancelled_And_ProcessedAt()
+        {
+            // Arrange
+            var eventId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+
+            var fakeEvent = new Event
+            {
+                EventId = eventId,
+                Title = "Test event",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddDays(1),
+                TotalSeats = 10,
+                AvailableSeats = 10
+            };
+
+            var bookingId = Guid.NewGuid();
+            var processedAt = DateTime.UtcNow.AddMinutes(5);
+
+            var fakeBooking = new Booking
+            {
+                BookingId = bookingId,
+                EventId = eventId,
+                UserId = userId,
+                Event = fakeEvent,
+                CreatedAt = DateTime.UtcNow,
+                ProcessedAt = processedAt,
+                Status = BookingStatus.Confirmed,
+            };
+
+            // Act
+            fakeBooking.Cancel(processedAt);
+
+            // Assert
+            fakeBooking.Status.Should().Be(BookingStatus.Cancelled);
+            fakeBooking.ProcessedAt.Should().Be(processedAt);
         }
     }
 }

@@ -3,6 +3,6 @@
     public sealed class BadRequestException : DomainException
     {
         public BadRequestException(string message)
-            : base(message, "Bad Request") { }
+            : base(message, "Bad request") { }
     }
 }

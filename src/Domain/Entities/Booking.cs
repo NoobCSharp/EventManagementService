@@ -7,22 +7,27 @@ namespace Domain.Entities
         /// <summary>
         /// Уникальный идентификатор брони
         /// </summary>
-        required public Guid BookingId { get; set; }
+        public required Guid BookingId { get; set; }
 
         /// <summary>
         /// Идентификатор события, к которому относится бронь
         /// </summary>
-        required public Guid EventId { get; set; }
+        public required Guid EventId { get; set; }
+
+        /// <summary>
+        /// Идентификатор пользователя, который создал бронь
+        /// </summary>
+        public required Guid UserId { get; set; }
 
         /// <summary>
         /// Текущий статус брони
         /// </summary>
-        required public BookingStatus Status { get; set; }
+        public required BookingStatus Status { get; set; }
 
         /// <summary>
         /// Дата и время создания брони
         /// </summary>
-        required public DateTime CreatedAt { get; set; }
+        public required DateTime CreatedAt { get; set; }
 
         /// <summary>
         /// Дата и время обработки
@@ -32,7 +37,7 @@ namespace Domain.Entities
         /// <summary>
         /// Событие, к которому относится бронь
         /// </summary>
-        required public Event Event { get; set; }
+        public required Event Event { get; set; }
 
         public Booking()
         {
@@ -48,6 +53,12 @@ namespace Domain.Entities
         {
             Status = BookingStatus.Confirmed;
             ProcessedAt = processedAt;
-        }  
+        }
+
+        public void Cancel(DateTime processedAt)
+        {
+            Status = BookingStatus.Cancelled;
+            ProcessedAt = processedAt;
+        }
     }
 }

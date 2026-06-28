@@ -23,8 +23,17 @@ namespace EventManagementService.IntegrationTests
 
             await using var context = _fixture.CreateContext();
 
+            var userRepository = new UserRepository(context);
             var eventRepository = new EventRepository(context);
             var bookingRepository = new BookingRepository(context);
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                Login = "Test User",
+                PasswordHash = "abcd",
+                Role = Role.User
+            };
 
             var @event = new Event
             {
@@ -42,12 +51,14 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Event = @event,
                 Status = BookingStatus.Pending
             };
 
             // Act (действие)
+            await userRepository.AddUserAsync(user);
             await eventRepository.AddEventAsync(@event);
             await bookingRepository.CreateBookingAsync(booking);
 
@@ -71,8 +82,17 @@ namespace EventManagementService.IntegrationTests
 
             await using var context = _fixture.CreateContext();
 
+            var userRepository = new UserRepository(context);
             var eventRepository = new EventRepository(context);
             var bookingRepository = new BookingRepository(context);
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                Login = "Test User",
+                PasswordHash = "abcd",
+                Role = Role.User
+            };
 
             var @event = new Event
             {
@@ -90,12 +110,14 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Event = @event,
                 Status = BookingStatus.Pending
             };
 
             // Act (действие)
+            await userRepository.AddUserAsync(user);
             await eventRepository.AddEventAsync(@event);
             await bookingRepository.CreateBookingAsync(booking);
 
@@ -119,8 +141,17 @@ namespace EventManagementService.IntegrationTests
 
             await using var context = _fixture.CreateContext();
 
+            var userRepository = new UserRepository(context);
             var eventRepository = new EventRepository(context);
             var bookingRepository = new BookingRepository(context);
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid(),
+                Login = "Test User",
+                PasswordHash = "abcd",
+                Role = Role.User
+            };
 
             var @event = new Event
             {
@@ -138,6 +169,7 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Event = @event,
                 Status = BookingStatus.Confirmed
@@ -147,6 +179,7 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 CreatedAt = DateTime.UtcNow.AddHours(2),
                 Event = @event,
                 Status = BookingStatus.Pending
@@ -156,6 +189,7 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Event = @event,
                 Status = BookingStatus.Pending
@@ -165,12 +199,14 @@ namespace EventManagementService.IntegrationTests
             {
                 BookingId = Guid.NewGuid(),
                 EventId = @event.EventId,
+                UserId = user.UserId,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Event = @event,
                 Status = BookingStatus.Rejected
             };
 
             // Act (действие)
+            await userRepository.AddUserAsync(user);
             await eventRepository.AddEventAsync(@event);
 
             await bookingRepository.CreateBookingAsync(bookingOne);

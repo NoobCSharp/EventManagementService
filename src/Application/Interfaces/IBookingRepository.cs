@@ -30,5 +30,17 @@ namespace Application.Interfaces
         /// Коллекция объектов брони со статусом "Ожидает обработки".
         /// </returns>
         Task<IEnumerable<Booking>> GetPendingBookingsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Получает количество активных броней для указанного пользователя.
+        /// </summary>
+        /// <param name="userId">
+        /// уникальный идентификатор пользователя, для которого необходимо получить количество активных броней.
+        /// </param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>
+        /// Количество активных броней для указанного пользователя.
+        /// </returns>
+        Task<int> GetActiveBookingsCountAsync(Guid userId, CancellationToken cancellationToken = default);
     }
 }

@@ -29,7 +29,7 @@ namespace Application.Interfaces
         Task<Event?> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Добавляет событие в коллекцию событий.
+        /// Добавляет событие в хранилище.
         /// </summary>
         /// <param name="@event">
         /// Объект события содержащий необходимую информацию.

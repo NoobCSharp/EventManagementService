@@ -1,6 +1,7 @@
 ﻿using Application.Dtos.EventDtos;
 using Application.Filters;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventManagementService.Controllers
@@ -24,7 +25,11 @@ namespace EventManagementService.Controllers
         /// </summary>
         /// <returns>Объект EventDtoPaginatedResponse сформированный после фильтрации и пагинации.</returns>
         /// <response code="200">События успешно получены</response>
+        /// <remarks>
+        /// Доступ: открыт для всех пользователей <b>AllowAnonymous</b>.
+        ///</remarks>
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(EventDtoPaginatedResponse), StatusCodes.Status200OK)]
         public async Task<ActionResult<EventDtoPaginatedResponse>> GetAllEvents([FromQuery] EventFilter eventFilter, CancellationToken cancellationToken = default)
         {
@@ -37,10 +42,14 @@ namespace EventManagementService.Controllers
         /// Метод возвращает объект события по Id из коллекции.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <returns>Объект EventDtoResponse.</returns>
+        /// <returns>Объект EventDtoResponse с информацией о событии.</returns>
         /// <response code="200">Событие успешно найдено</response>
         /// <response code="404">Событие не найдено</response>
+        /// <remarks>
+        /// Доступ: открыт для всех пользователей <b>AllowAnonymous</b>.
+        ///</remarks>
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(EventDtoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<EventDtoResponse>> GetEventById(Guid id, CancellationToken cancellationToken = default)
@@ -53,15 +62,19 @@ namespace EventManagementService.Controllers
         /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
-        /// <param name="requestEventDto">Новый объект события.</param>
-        /// <returns>Возвращает новый объект EventDtoResponse созданного события
+        /// <param name="eventDtoRequest">Новый объект события.</param>
+        /// <returns>Объект EventDtoResponse с информацией о событии
         /// и заголовок Location, указывающий на метод получения события по Id.</returns>
         /// <response code="201">Событие успешно создано</response>
+        /// <remarks>
+        /// Доступ: только пользователи с ролью <b>Admin</b>.
+        ///</remarks>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(typeof(EventDtoResponse), StatusCodes.Status201Created)]
-        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest requestEventDto, CancellationToken cancellationToken = default)
+        public async Task<ActionResult> AddEvent([FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {          
-            var eventDtoResponse = await _eventService.AddEventAsync(requestEventDto, cancellationToken);
+            var eventDtoResponse = await _eventService.AddEventAsync(eventDtoRequest, cancellationToken);
 
             return CreatedAtAction(
                 nameof(GetEventById),
@@ -73,15 +86,19 @@ namespace EventManagementService.Controllers
         /// Метод обновляет существующий объект события.
         /// </summary>
         /// <param name="id">Уникальный идентификатор события.</param>
-        /// <param name="eventDtoRequest">Объект EventDtoRequest с новыми данными для обновления.</param>
+        /// <param name="eventDtoRequest">Объект EventDtoRequest с новыми данными для обновления события.</param>
         /// <response code="204">Событие успешно обновлено</response>
         /// <response code="400">Некорректные данные для обновления события</response>
         /// <response code="404">Событие не найдено</response>
+        /// <remarks>
+        /// Доступ: только пользователи с ролью <b>Admin</b>.
+        ///</remarks>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> ChangeEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
+        public async Task<ActionResult> UpdateEvent(Guid id, [FromBody] EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
         {
             await _eventService.UpdateEventAsync(id, eventDtoRequest, cancellationToken);
             
@@ -94,7 +111,11 @@ namespace EventManagementService.Controllers
         /// <param name="id">Уникальный идентификатор события.</param>
         /// <response code="204">Событие успешно удалено</response>
         /// <response code="404">Событие не найдено</response>
+        /// <remarks>
+        /// Доступ: только пользователи с ролью <b>Admin</b>.
+        ///</remarks>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteEvent(Guid id, CancellationToken cancellationToken = default)

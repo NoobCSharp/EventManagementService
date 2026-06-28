@@ -15,6 +15,11 @@ namespace Application.Dtos.BookingDtos
         public Guid EventId { get; init; }
 
         /// <summary>
+        /// Идентификатор пользователя, который создал бронь
+        /// </summary>
+        public Guid UserId { get; init; }
+
+        /// <summary>
         /// Текущий статус брони
         /// </summary>
         public BookingStatus Status { get; init; }

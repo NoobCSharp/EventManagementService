@@ -23,6 +23,10 @@ namespace Infrastructure.DataAccess.Configurations
             builder.Property(b => b.EventId)
                 .IsRequired();
 
+            //Указание обязательного поля внешнего ключа к User
+            builder.Property(x => x.UserId)
+                .IsRequired();
+
             //Указание обязательного поля статуса с конвертацией enum -> string
             builder.Property(b => b.Status)
                 .IsRequired()
@@ -36,10 +40,16 @@ namespace Infrastructure.DataAccess.Configurations
             builder.Property(b => b.ProcessedAt)
                 .IsRequired(false);
 
-            //Связь с Event (один ко многим) с каскадным удалением
+            //Связь с Event (один ко многим) с каскадным удалением, если событие удаляется, то удаляются все его брони
             builder.HasOne(b => b.Event)
                 .WithMany(e => e.Bookings)
                 .HasForeignKey(b => b.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Связь с User (один ко многим) с каскадным удалением, если пользователь удаляется, то удаляются все его брони
+            builder.HasOne<User>()             
+                .WithMany()                    
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

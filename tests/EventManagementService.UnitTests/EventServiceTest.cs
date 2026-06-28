@@ -12,17 +12,23 @@ namespace EventManagementService.UnitTests
 {
     public class EventServiceTest
     {
+        private readonly Mock<IEventRepository> _eventRepositoryMock = new();
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
+
+        private EventService CreateEventService()
+        {
+            return new EventService(
+                _eventRepositoryMock.Object,
+                _unitOfWorkMock.Object
+            );
+        }
+
         #region Successful scenarios for EventService
 
         [Fact]
         public async Task AddEvent_ShouldAdd_Event()
         {
             // Arrange (подготовка)  
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
-
             var request = new EventDtoRequest()
             {
                 Title = "Test",
@@ -32,6 +38,8 @@ namespace EventManagementService.UnitTests
                 TotalSeats = 1,
             };
 
+            var service = CreateEventService();
+
             //// Act (действие)
             var response = await service.AddEventAsync(request);
 
@@ -39,7 +47,7 @@ namespace EventManagementService.UnitTests
             response.Should().NotBeNull();
             response.EventId.Should().NotBeEmpty();
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.AddEventAsync(It.Is<Event>(e => 
                     e.Title == request.Title && 
                     e.Description == request.Description &&
@@ -49,7 +57,7 @@ namespace EventManagementService.UnitTests
                     e.AvailableSeats == request.TotalSeats)),
                 Times.Once);
 
-            unitOfWorkMock.Verify(
+            _unitOfWorkMock.Verify(
                 u => u.SaveChangesAsync(),
                 Times.Once);
         }
@@ -58,9 +66,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturns_AllEvents_When_FilterIsEmpty()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var fakeEvents = new List<Event>
             {
                 new()
@@ -91,12 +96,12 @@ namespace EventManagementService.UnitTests
                 Items = fakeEvents
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventsAsync(
                     It.IsAny<EventFilter>()))
                 .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             var filter = new EventFilter();
 
@@ -110,7 +115,7 @@ namespace EventManagementService.UnitTests
             result.ResponseEventDtos[0].Title.Should().Be("Event one");
             result.ResponseEventDtos[1].Title.Should().Be("Event two");
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(
                     It.IsAny<EventFilter>()),
                 Times.Once);
@@ -120,9 +125,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturn_EmptyCollection_WhenFilterHasNoMatches()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var filter = new EventFilter()
             {
                 Title = "Y",
@@ -136,11 +138,11 @@ namespace EventManagementService.UnitTests
                 Items = []
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventsAsync(filter))
                 .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventsAsync(filter);
@@ -153,7 +155,7 @@ namespace EventManagementService.UnitTests
 
             result.TotalEventsCount.Should().Be(0);
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(filter),
                 Times.Once);
         }
@@ -162,14 +164,10 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturns_FilteredEvents_ByTitle()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var filter = new EventFilter()
             {
                 Title = "M",
             };
-
 
             var filteredEvents = new List<Event>
             {
@@ -192,11 +190,11 @@ namespace EventManagementService.UnitTests
                 Items = filteredEvents
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventsAsync(filter))
                 .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventsAsync(filter);
@@ -206,7 +204,7 @@ namespace EventManagementService.UnitTests
 
             result.ResponseEventDtos[0].Title.Should().Be("M");
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(filter),
                 Times.Once);
         }
@@ -215,9 +213,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturns_FilteredEvents_ByDate()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var filter = new EventFilter
             {
                 From = new DateTime(2026, 03, 09),
@@ -254,11 +249,11 @@ namespace EventManagementService.UnitTests
                 Items = filteredEvents
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventsAsync(filter))
                 .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventsAsync(filter);
@@ -268,7 +263,7 @@ namespace EventManagementService.UnitTests
 
             result.ResponseEventDtos.Should().HaveCount(2);
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(filter),
                 Times.Once);
         }
@@ -277,9 +272,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturns_PaginatedEvents()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var filter = new EventFilter
             {
                 Page = 2,
@@ -307,12 +299,12 @@ namespace EventManagementService.UnitTests
                 Items = filteredEvents
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                r => r.GetEventsAsync(
                    It.IsAny<EventFilter>()))
                .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventsAsync(filter);
@@ -328,7 +320,7 @@ namespace EventManagementService.UnitTests
 
             result.ResponseEventDtos[0].Title.Should().Be("Event one");
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(filter),
                 Times.Once);
         }
@@ -337,9 +329,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturns_FilteredAndPaginatedEvents()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var filter = new EventFilter()
             {
                 Title = "E",
@@ -379,11 +368,11 @@ namespace EventManagementService.UnitTests
                 Items = filteredEvents
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                r => r.GetEventsAsync(filter))
                .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventsAsync(filter);
@@ -402,7 +391,7 @@ namespace EventManagementService.UnitTests
                 .Should()
                 .Contain(["Event one", "Event two"]);
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(filter),
                 Times.Once);
         }
@@ -411,9 +400,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEvents_ShouldReturn_LastPage_WithRemainingItem()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var filter = new EventFilter()
             {
                 Page = 2,
@@ -441,11 +427,11 @@ namespace EventManagementService.UnitTests
                 Items = filteredEvents
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventsAsync(filter))
                 .ReturnsAsync(pagedResult);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventsAsync(filter);
@@ -461,7 +447,7 @@ namespace EventManagementService.UnitTests
 
             result.ResponseEventDtos[0].Title.Should().Be("Event last");
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventsAsync(filter),
                 Times.Once);
         }
@@ -470,9 +456,6 @@ namespace EventManagementService.UnitTests
         public async Task GetEventById_ShouldReturn_Event_ById()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventId = Guid.NewGuid();
 
             Event fakeEvent = new Event()
@@ -485,11 +468,11 @@ namespace EventManagementService.UnitTests
                 AvailableSeats = 1,
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventByIdAsync(eventId))
                 .ReturnsAsync(fakeEvent);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             var result = await service.GetEventByIdAsync(eventId);
@@ -500,7 +483,7 @@ namespace EventManagementService.UnitTests
             result.EventId.Should().Be(eventId);
             result.Title.Should().Be("Event one");
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventByIdAsync(eventId), 
                 Times.Once);
         }
@@ -509,9 +492,6 @@ namespace EventManagementService.UnitTests
         public async Task ChangeEvent_ShouldUpdate_Event()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventId = Guid.NewGuid();
 
             Event fakeEvent = new Event()
@@ -533,11 +513,11 @@ namespace EventManagementService.UnitTests
                 TotalSeats = 1,
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventByIdAsync(eventId)).
                 ReturnsAsync(fakeEvent);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
             await service.UpdateEventAsync(eventId, eventDtoRequest);
@@ -548,11 +528,11 @@ namespace EventManagementService.UnitTests
             fakeEvent.StartAt.Should().Be(eventDtoRequest.StartAt);
             fakeEvent.EndAt.Should().Be(eventDtoRequest.EndAt);
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventByIdAsync(eventId),
                 Times.Once);
 
-            unitOfWorkMock.Verify(
+            _unitOfWorkMock.Verify(
                 u => u.SaveChangesAsync(),
                 Times.Once);
         }
@@ -561,9 +541,6 @@ namespace EventManagementService.UnitTests
         public async Task RemoveEvent_ShouldRemove_Event()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventId = Guid.NewGuid();
 
             Event fakeEvent = new Event()
@@ -576,26 +553,26 @@ namespace EventManagementService.UnitTests
                 AvailableSeats = 1,
             };
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventByIdAsync(eventId))
                 .ReturnsAsync(fakeEvent);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Act (действие)
 
             await service.RemoveEventAsync(eventId);
 
             // Assert (проверка)
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventByIdAsync(eventId),
                 Times.Once);
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.RemoveEvent(fakeEvent),
                 Times.Once);
 
-            unitOfWorkMock.Verify(
+            _unitOfWorkMock.Verify(
                 u => u.SaveChangesAsync(),
                 Times.Once);
         }
@@ -608,16 +585,13 @@ namespace EventManagementService.UnitTests
         public async Task GetEventById_WithNonExisting_EventId_ShouldThrow_NotFoundException()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventId = Guid.NewGuid();
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventByIdAsync(eventId))
                 .ReturnsAsync((Event?)null);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Assert (проверка)
             await service.Invoking(
@@ -625,7 +599,7 @@ namespace EventManagementService.UnitTests
                 .Should()
                 .ThrowAsync<NotFoundException>();
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.GetEventByIdAsync(eventId),
                 Times.Once);
         }
@@ -634,16 +608,13 @@ namespace EventManagementService.UnitTests
         public async Task UpdateEvent_WithNonExisting_EventId_ShouldThrow_NotFoundExceptionAsync()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventId = Guid.NewGuid();
 
-            repositoryMock.Setup(
+            _eventRepositoryMock.Setup(
                 r => r.GetEventByIdAsync(eventId))
                 .ReturnsAsync((Event?)null);
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             var eventDtoRequest = new EventDtoRequest()
             {
@@ -664,9 +635,6 @@ namespace EventManagementService.UnitTests
         public async Task AddEvent_WithIncorrectData_Title_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventDtoRequest = new EventDtoRequest
             {
                 Title = string.Empty,
@@ -676,14 +644,14 @@ namespace EventManagementService.UnitTests
                 TotalSeats = 1
             };
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Assert(проверка)
             await service.Invoking(s => s.AddEventAsync(eventDtoRequest))
                 .Should()
                 .ThrowAsync<BadRequestException>();
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.AddEventAsync(It.IsAny<Event>()),
                 Times.Never);
         }
@@ -692,9 +660,6 @@ namespace EventManagementService.UnitTests
         public async Task ChangeEvent_WithIncorrectData_EndAtEarlierStartAt_ShouldThrow_BadRequestException()
         {
             // Arrange (подготовка)
-            var repositoryMock = new Mock<IEventRepository>();
-            var unitOfWorkMock = new Mock<IUnitOfWork>();
-
             var eventDtoRequest = new EventDtoRequest()
             {
                 Title = "NewTitle",
@@ -704,14 +669,14 @@ namespace EventManagementService.UnitTests
                 TotalSeats = 1
             };
 
-            var service = new EventService(repositoryMock.Object, unitOfWorkMock.Object);
+            var service = CreateEventService();
 
             // Assert(проверка)
             await service.Invoking(s => s.AddEventAsync(eventDtoRequest))
                 .Should()
                 .ThrowAsync<BadRequestException>();
 
-            repositoryMock.Verify(
+            _eventRepositoryMock.Verify(
                 r => r.AddEventAsync(It.IsAny<Event>()),
                 Times.Never);
         }

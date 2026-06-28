@@ -54,8 +54,11 @@ namespace EventManagementService.Middlewares.ExceptionMiddleware
             int statusCode = ex switch
             {
                 BadRequestException => StatusCodes.Status400BadRequest,
+                EventAlreadyStartedException => StatusCodes.Status400BadRequest,
+                BookingAccessDeniedException => StatusCodes.Status403Forbidden,
                 NotFoundException => StatusCodes.Status404NotFound,
                 NoAvailableSeatsException => StatusCodes.Status409Conflict,
+                ActiveBookingLimitExceededException => StatusCodes.Status409Conflict,
                 DomainException => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status500InternalServerError
             };
