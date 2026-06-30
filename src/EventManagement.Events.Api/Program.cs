@@ -1,13 +1,12 @@
-﻿using Application;
-using EventManagementService.BackgroundServices;
-using EventManagementService.Middlewares.ExceptionMiddleware;
-using Infrastructure;
-using Infrastructure.DataAccess;
+
+using EventManagement.Events.Api.Middlewares;
+using EventManagement.Events.Application;
+using EventManagement.Events.Infrastructure;
+using EventManagement.Events.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
-using System.Text.Json.Serialization;
 
-namespace EventManagementService
+namespace EventManagement.Events.Api
 {
     public class Program
     {
@@ -21,14 +20,9 @@ namespace EventManagementService
                 options.ValidateOnBuild = true;
             });
 
-            // Конвертер enum для вывода читабельного статуса
-            builder.Services.AddControllers().AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            });
-
             builder.Services.AddEndpointsApiExplorer();
 
+            // Add services to the container.
             builder.Services.AddSwaggerGen(options =>
             {
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -49,24 +43,19 @@ namespace EventManagementService
 
                     return securityRequirement;
                 });
-
-                //options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-                //{
-                //    [new OpenApiSecuritySchemeReference("Bearer", document)] = []
-                //});
             });
 
+            builder.Services.AddControllers();
+            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
             // Регистрация сервисов приложения и репозиториев
             builder.Services.AddApplicationServices();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
-            // Регистрация фоновой службы для обработки броней
-            builder.Services.AddHostedService<BookingProcessorHostedService>();
-
             var app = builder.Build();
 
+            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
@@ -77,7 +66,6 @@ namespace EventManagementService
 
             app.UseExceptionHandlingMiddleware();
 
-            app.UseAuthentication();
             app.UseAuthorization();
 
             using (var scope = app.Services.CreateScope())
