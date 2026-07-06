@@ -1,8 +1,8 @@
-﻿using EventManagement.Events.Application.Interfaces;
-using EventManagement.Events.Application.Services;
+﻿using EventManagement.Events.Infrastructure.Interfaces;
+using EventManagement.Events.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventManagement.Events.Application
+namespace EventManagement.Events.Infrastructure
 {
     public static class ApplicationInjection
     {

@@ -33,34 +33,29 @@ namespace EventManagement.Identity.Infrastructure
 
             services.AddScoped<IUserRepository, UserRepository>();
 
-            var jwtOptions = new JwtGenerationOptions
-            {
-                Secret = configuration["Jwt:Secret"]!,
-                Issuer = configuration["Jwt:Issuer"]!,
-                Audience = configuration["Jwt:Audience"]!,
-                LifetimeMinutes = int.Parse(configuration["Jwt:LifetimeMinutes"]!)
-            };
+            services.Configure<JwtGenerationOptions>(configuration.GetSection("Jwt"));
 
-            services.AddSingleton(jwtOptions);
-
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtOptions.Issuer,
+                    var jwt = configuration.GetSection("Jwt").Get<JwtGenerationOptions>()!;
 
-                    ValidateAudience = true,
-                    ValidAudience = jwtOptions.Audience,
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwt.Issuer,
 
-                    ValidateLifetime = true,
+                        ValidateAudience = true,
+                        ValidAudience = jwt.Audience,
 
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey =
+                            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Secret)),
 
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
 
             services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddSingleton<IPasswordHasher, Sha256PasswordHasher>();

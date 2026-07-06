@@ -1,0 +1,246 @@
+# docker compose up -d
+# docker compose down
+# docker compose down -v
+
+services:
+
+  # ==========================================
+  # Apache Kafka (KRaft)
+  # ==========================================
+  kafka:
+
+    # Официальный образ Kafka
+    image: confluentinc/cp-kafka:latest
+
+    container_name: kafka
+
+    restart: unless-stopped
+
+    # Порт для подключения с компьютера
+    ports:
+      - "9092:9092"
+
+    environment:
+
+      # ====================================
+      # KRaft configuration
+      # ====================================
+
+      # Уникальный идентификатор брокера
+      KAFKA_NODE_ID: 1
+
+      # Один контейнер выполняет две роли:
+      # Broker — хранит сообщения.
+      # Controller — управляет кластером.
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      # Узлы Controller Quorum.
+      # Для разработки используется один брокер.
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+
+      # Идентификатор Kafka-кластера.
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+
+      # ====================================
+      # Listeners
+      # ====================================
+
+      # PLAINTEXT
+      #     используется контейнерами внутри Docker.
+      #
+      # PLAINTEXT_HOST
+      #     используется приложениями,
+      #     запущенными на локальном компьютере.
+      #
+      # CONTROLLER
+      #     внутренний канал управления Kafka.
+
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
+
+      # Адреса, которые Kafka сообщает клиентам.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+
+      # Протокол для каждого Listener.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+
+      # Какой Listener используется Controller.
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # Через какой Listener брокеры общаются между собой.
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # ====================================
+      # Development
+      # ====================================
+
+      # Один брокер → одна реплика внутренних топиков.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+      # Журнал транзакций также хранится в одной реплике.
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+      # Минимальное количество синхронных реплик.
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # Не ждать других Consumer при первом запуске.
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+      # Разрешить подключение без SSL.
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+
+      # Автоматически создавать топики.
+      # Удобно при разработке.
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+    # Сохраняем сообщения между перезапусками контейнера.
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+    # Проверяем готовность Kafka.
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # ==========================================
+  # Users Database
+  # ==========================================
+  users-db:
+
+    image: postgres:16
+
+    container_name: users-db
+
+    restart: unless-stopped
+
+    environment:
+
+      POSTGRES_DB: users
+
+      POSTGRES_USER: postgres
+
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5433:5432"
+
+    # Сохраняем данные базы.
+    volumes:
+      - users-db-data:/var/lib/postgresql/data
+
+    # Проверяем готовность PostgreSQL.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ==========================================
+  # Events Database
+  # ==========================================
+  events-db:
+
+    image: postgres:16
+
+    container_name: events-db
+
+    restart: unless-stopped
+
+    environment:
+
+      POSTGRES_DB: events
+
+      POSTGRES_USER: postgres
+
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - events-db-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ==========================================
+  # Bookings Database
+  # ==========================================
+  bookings-db:
+
+    image: postgres:16
+
+    container_name: bookings-db
+
+    restart: unless-stopped
+
+    environment:
+
+      POSTGRES_DB: bookings
+
+      POSTGRES_USER: postgres
+
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5435:5432"
+
+    volumes:
+      - bookings-db-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ==========================================
+  # Kafka UI
+  # ==========================================
+  kafka-ui:
+
+    image: provectuslabs/kafka-ui:latest
+
+    container_name: kafka-ui
+
+    restart: unless-stopped
+
+    depends_on:
+
+      kafka:
+        condition: service_healthy
+
+    ports:
+      - "8080:8080"
+
+    environment:
+
+      # Имя кластера в интерфейсе.
+      KAFKA_CLUSTERS_0_NAME: Local
+
+      # Kafka внутри Docker-сети.
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+      # Разрешить добавлять кластеры через UI.
+      DYNAMIC_CONFIG_ENABLED: "true"
+
+# ==========================================
+# Постоянное хранилище данных
+# ==========================================
+volumes:
+
+  # Сообщения Kafka.
+  kafka-data:
+
+  # База Users.
+  users-db-data:
+
+  # База Events.
+  events-db-data:
+
+  # База Bookings.
+  bookings-db-data:

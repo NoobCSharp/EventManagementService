@@ -1,7 +1,7 @@
-﻿using EventManagement.Events.Application.Dtos;
-using EventManagement.Events.Application.Filters;
+﻿using EventManagement.Events.Infrastructure.Dtos;
+using EventManagement.Events.Infrastructure.Filters;
 
-namespace EventManagement.Events.Application.Interfaces
+namespace EventManagement.Events.Infrastructure.Interfaces
 {
     public interface IEventService
     {

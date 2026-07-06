@@ -18,24 +18,24 @@ namespace EventManagement.Identity.Application.Services
             _jwtTokenGenerator = jwtTokenGenerator;
         }
 
-        public async Task<string> LoginUserAsync(LoginUserRequest request)
+        public async Task<string> LoginUserAsync(LoginUserRequest request, CancellationToken cancellationToken = default)
         {
-            var existingUser = await _userRepository.GetUserByLoginAsync(request.Login);
+            var existingUser = await _userRepository.GetUserByLoginAsync(request.Login, cancellationToken);
 
             if (existingUser == null)
-                throw new UnauthorizedException("Неверный логин или пароль!");
+                throw new UserNotFoundException("Неверный логин или пароль!");
             
             var isValid = _passwordHasher.Verify(request.Password, existingUser.PasswordHash);
 
             if (!isValid)
-                throw new UnauthorizedException("Неверный логин или пароль!");
+                throw new UserNotFoundException("Неверный логин или пароль!");
 
             return _jwtTokenGenerator.GenerateToken(existingUser.UserId, existingUser.Login, existingUser.Role);
         }
 
-        public async Task RegisterUserAsync(RegisterUserRequest request)
+        public async Task RegisterUserAsync(RegisterUserRequest request, CancellationToken cancellationToken = default)
         {
-            var existingUser = await _userRepository.GetUserByLoginAsync(request.Login);
+            var existingUser = await _userRepository.GetUserByLoginAsync(request.Login, cancellationToken);
 
             if (existingUser != null)
                 throw new UserAlreadyExistsException("Пользователь с указанным логином уже существует!");
@@ -48,9 +48,9 @@ namespace EventManagement.Identity.Application.Services
                 Role = request.Role,
             };
 
-            await _userRepository.AddUserAsync(user);
+            await _userRepository.AddUserAsync(user, cancellationToken);
 
-            await _userRepository.SaveChangesAsync();
+            await _userRepository.SaveChangesAsync(cancellationToken);
         }
     }
 }

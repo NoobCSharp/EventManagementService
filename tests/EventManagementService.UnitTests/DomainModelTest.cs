@@ -1,5 +1,6 @@
-﻿using Domain.Entities;
-using Domain.Enums;
+﻿using EventManagement.Bookings.Domain.Entities;
+using EventManagement.Bookings.Domain.Enums;
+using EventManagement.Events.Domain.Entities;
 using FluentAssertions;
 
 namespace EventManagementService.UnitTests
@@ -16,17 +17,6 @@ namespace EventManagementService.UnitTests
             // Arrange
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
-
-            var fakeEvent = new Event
-            {
-                EventId = eventId,
-                Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
-                TotalSeats = 10,
-                AvailableSeats = 10
-            };
-
             var bookingId = Guid.NewGuid();
             var processedAt = DateTime.UtcNow.AddMinutes(5);
 
@@ -35,7 +25,6 @@ namespace EventManagementService.UnitTests
                 BookingId = bookingId,
                 EventId = eventId,
                 UserId = userId,
-                Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
                 Status = BookingStatus.Pending,
@@ -59,17 +48,6 @@ namespace EventManagementService.UnitTests
             // Arrange
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
-
-            var fakeEvent = new Event
-            {
-                EventId = eventId,
-                Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
-                TotalSeats = 10,
-                AvailableSeats = 10
-            };
-
             var bookingId = Guid.NewGuid();
             var processedAt = DateTime.UtcNow.AddMinutes(5);
 
@@ -78,7 +56,6 @@ namespace EventManagementService.UnitTests
                 BookingId = bookingId,
                 EventId = eventId,
                 UserId = userId,
-                Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
                 Status = BookingStatus.Pending,
@@ -129,17 +106,6 @@ namespace EventManagementService.UnitTests
             // Arrange
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
-
-            var fakeEvent = new Event
-            {
-                EventId = eventId,
-                Title = "Test event",
-                StartAt = DateTime.UtcNow,
-                EndAt = DateTime.UtcNow.AddDays(1),
-                TotalSeats = 10,
-                AvailableSeats = 10
-            };
-
             var bookingId = Guid.NewGuid();
             var processedAt = DateTime.UtcNow.AddMinutes(5);
 
@@ -148,7 +114,6 @@ namespace EventManagementService.UnitTests
                 BookingId = bookingId,
                 EventId = eventId,
                 UserId = userId,
-                Event = fakeEvent,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
                 Status = BookingStatus.Confirmed,

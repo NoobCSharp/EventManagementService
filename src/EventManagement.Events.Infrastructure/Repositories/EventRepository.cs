@@ -1,6 +1,6 @@
-﻿using EventManagement.Events.Application.Common;
-using EventManagement.Events.Application.Filters;
-using EventManagement.Events.Application.Interfaces;
+﻿using EventManagement.Events.Infrastructure.Common;
+using EventManagement.Events.Infrastructure.Filters;
+using EventManagement.Events.Infrastructure.Interfaces;
 using EventManagement.Events.Domain.Entities;
 using EventManagement.Events.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;

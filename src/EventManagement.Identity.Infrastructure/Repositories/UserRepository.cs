@@ -24,7 +24,7 @@ namespace EventManagement.Identity.Infrastructure.Repositories
             return await _appDbContext.Users.FirstOrDefaultAsync(u => u.Login == login, cancellationToken);
         }
 
-        public async Task SaveChangesAsync()
+        public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             await _appDbContext.SaveChangesAsync();
         }

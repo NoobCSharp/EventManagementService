@@ -1,7 +1,9 @@
-﻿using EventManagement.Events.Application.Interfaces;
+﻿using EventManagement.Events.Infrastructure.Interfaces;
 using EventManagement.Events.Infrastructure.DataAccess;
+using EventManagement.Events.Infrastructure.KafkaServices;
 using EventManagement.Events.Infrastructure.Repositories;
 using EventManagement.Events.Infrastructure.Security;
+using EventManagement.Shared.Kafka.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +21,12 @@ namespace EventManagement.Events.Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
+            services.AddKafkaProducer(configuration);
+            services.AddKafkaConsumer(configuration);
+
+            services.AddHostedService<BookingCreatedKafkaService>();
+            services.AddHostedService<BookingCancelledKafkaService>();
+
             services.AddDbContext<AppDbContext>(options =>
             {
                 options.UseNpgsql(connectionString);                        // Обязательно
@@ -32,34 +40,32 @@ namespace EventManagement.Events.Infrastructure
 
             services.AddScoped<IEventRepository, EventRepository>();
 
-            var jwtOptions = new JwtValidationOptions
-            {
-                Secret = configuration["Jwt:Secret"]!,
-                Issuer = configuration["Jwt:Issuer"]!,
-                Audience = configuration["Jwt:Audience"]!
-            };
+            services.Configure<JwtValidationOptions>(configuration.GetSection("Jwt"));
 
-            services.AddSingleton(jwtOptions);
+            var jwtOptions = configuration
+                .GetSection("Jwt")
+                .Get<JwtValidationOptions>()!;
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtOptions.Issuer,
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtOptions.Issuer,
 
-                    ValidateAudience = true,
-                    ValidAudience = jwtOptions.Audience,
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions.Audience,
 
-                    ValidateLifetime = true,
+                        ValidateLifetime = true,
 
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
-                    
-                    ClockSkew = TimeSpan.Zero
-                };
-            });
-            
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
             return services;
         }
     }

@@ -1,6 +1,6 @@
-﻿using EventManagement.Events.Application.Dtos;
-using EventManagement.Events.Application.Filters;
-using EventManagement.Events.Application.Interfaces;
+﻿using EventManagement.Events.Infrastructure.Dtos;
+using EventManagement.Events.Infrastructure.Filters;
+using EventManagement.Events.Infrastructure.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

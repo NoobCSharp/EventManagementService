@@ -29,9 +29,9 @@ namespace EventManagement.Identity.Api.Controllers
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Register([FromBody] RegisterUserRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequest request, CancellationToken cancellationToken = default)
         {
-            await _userService.RegisterUserAsync(request);
+            await _userService.RegisterUserAsync(request, cancellationToken);
 
             return NoContent();
         }
@@ -47,9 +47,9 @@ namespace EventManagement.Identity.Api.Controllers
         [HttpPost("login")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<string>> Login([FromBody] LoginUserRequest request)
+        public async Task<ActionResult<string>> Login([FromBody] LoginUserRequest request, CancellationToken cancellationToken = default)
         {
-            var token = await _userService.LoginUserAsync(request);
+            var token = await _userService.LoginUserAsync(request, cancellationToken);
 
             return Ok(token);
         }

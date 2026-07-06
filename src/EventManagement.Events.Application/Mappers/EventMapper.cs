@@ -1,7 +1,7 @@
-﻿using EventManagement.Events.Application.Dtos;
+﻿using EventManagement.Events.Infrastructure.Dtos;
 using EventManagement.Events.Domain.Entities;
 
-namespace EventManagement.Events.Application.Mappers
+namespace EventManagement.Events.Infrastructure.Mappers
 {
     public static class EventMapper
     {

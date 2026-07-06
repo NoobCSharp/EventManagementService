@@ -1,4 +1,4 @@
-﻿namespace EventManagement.Events.Application.Dtos
+﻿namespace EventManagement.Events.Infrastructure.Dtos
 {
     public record EventDtoPaginatedResponse
     {

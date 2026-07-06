@@ -23,9 +23,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Application\Application.csproj" />
-    <ProjectReference Include="..\..\src\Domain\Domain.csproj" />
-    <ProjectReference Include="..\..\src\EventManagementService\EventManagementService.csproj" />
+    <ProjectReference Include="..\..\src\EventManagement.Bookings.Application\EventManagement.Bookings.Application.csproj" />
+    <ProjectReference Include="..\..\src\EventManagement.Bookings.Domain\EventManagement.Bookings.Domain.csproj" />
+    <ProjectReference Include="..\..\src\EventManagement.Events.Application\EventManagement.Events.Application.csproj" />
+    <ProjectReference Include="..\..\src\EventManagement.Identity.Application\EventManagement.Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\EventManagement.Shared\EventManagement.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace EventManagement.Events.Application.Common
+﻿namespace EventManagement.Events.Infrastructure.Common
 {
     public record PagedResult<T>
     {

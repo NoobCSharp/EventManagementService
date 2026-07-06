@@ -25,6 +25,6 @@ namespace EventManagement.Identity.Application.Interfaces
         /// Сохраняет изменения в хранилище данных.
         /// </summary>
         /// <returns></returns>
-        Task SaveChangesAsync();
+        Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -1,11 +1,11 @@
-﻿using EventManagement.Events.Application.Dtos;
-using EventManagement.Events.Application.Filters;
-using EventManagement.Events.Application.Interfaces;
-using EventManagement.Events.Application.Mappers;
+﻿using EventManagement.Events.Infrastructure.Dtos;
+using EventManagement.Events.Infrastructure.Filters;
+using EventManagement.Events.Infrastructure.Interfaces;
+using EventManagement.Events.Infrastructure.Mappers;
 using EventManagement.Events.Domain.Entities;
 using EventManagement.Events.Domain.Exceptions;
 
-namespace EventManagement.Events.Application.Services
+namespace EventManagement.Events.Infrastructure.Services
 {
     public class EventService : IEventService
     {
@@ -79,10 +79,13 @@ namespace EventManagement.Events.Application.Services
             if (existingEvent is null)
                 throw new EventNotFoundException("Событие по указанному Id не найдено!");
 
+            // Забронированные места
+            var bookedSeats = existingEvent.TotalSeats - existingEvent.AvailableSeats;
+
             // TODO подумать над тем, что будет,
             // если при обновлении события общее количество мест будет меньше,
             // чем количество уже забронированных мест.
-            if (eventDtoRequest.TotalSeats < existingEvent.AvailableSeats)
+            if (eventDtoRequest.TotalSeats < bookedSeats)
                 throw new EventValidationException("Общее количество мест не может быть меньше количества уже забронированных мест!");
 
             existingEvent.Title = eventDtoRequest.Title;
@@ -90,7 +93,7 @@ namespace EventManagement.Events.Application.Services
             existingEvent.StartAt = eventDtoRequest.StartAt;
             existingEvent.EndAt = eventDtoRequest.EndAt;
             existingEvent.TotalSeats = eventDtoRequest.TotalSeats;
-            existingEvent.AvailableSeats = eventDtoRequest.TotalSeats - existingEvent.AvailableSeats;
+            existingEvent.AvailableSeats = eventDtoRequest.TotalSeats - bookedSeats;
 
             await _eventRepository.SaveChangesAsync(cancellationToken);
         }

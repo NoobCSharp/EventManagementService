@@ -57,7 +57,7 @@ namespace EventManagement.Identity.Api.Middlewares
         int statusCode = ex switch
             {
                 UserAlreadyExistsException => StatusCodes.Status400BadRequest,
-                UnauthorizedException => StatusCodes.Status404NotFound,
+                UserNotFoundException => StatusCodes.Status404NotFound,
                 DomainException => StatusCodes.Status400BadRequest,
                 _ => StatusCodes.Status500InternalServerError
             };

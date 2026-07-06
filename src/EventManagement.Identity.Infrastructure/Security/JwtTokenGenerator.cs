@@ -1,5 +1,6 @@
 ﻿using EventManagement.Identity.Application.Interfaces;
 using EventManagement.Identity.Domain.Enums;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,9 +12,9 @@ namespace EventManagement.Identity.Infrastructure.Security
     {
         private readonly JwtGenerationOptions _options;
 
-        public JwtTokenGenerator(JwtGenerationOptions options)
+        public JwtTokenGenerator(IOptions<JwtGenerationOptions> options)
         {
-            _options = options;
+            _options = options.Value;
         }
 
         public string GenerateToken(Guid userId, string login, Role role)

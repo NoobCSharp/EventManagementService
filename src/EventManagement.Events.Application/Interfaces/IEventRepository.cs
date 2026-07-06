@@ -1,8 +1,8 @@
-﻿using EventManagement.Events.Application.Common;
-using EventManagement.Events.Application.Filters;
+﻿using EventManagement.Events.Infrastructure.Common;
+using EventManagement.Events.Infrastructure.Filters;
 using EventManagement.Events.Domain.Entities;
 
-namespace EventManagement.Events.Application.Interfaces
+namespace EventManagement.Events.Infrastructure.Interfaces
 {
     public interface IEventRepository
     {
@@ -48,6 +48,6 @@ namespace EventManagement.Events.Application.Interfaces
         /// Сохраняет изменения в хранилище данных.
         /// </summary>
         /// <returns></returns>
-        Task SaveChangesAsync(CancellationToken cancellationToken);
+        Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

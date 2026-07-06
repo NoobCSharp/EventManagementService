@@ -1,6 +1,4 @@
-
 using EventManagement.Events.Api.Middlewares;
-using EventManagement.Events.Application;
 using EventManagement.Events.Infrastructure;
 using EventManagement.Events.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
