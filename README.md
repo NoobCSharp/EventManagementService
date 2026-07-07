@@ -11,7 +11,7 @@
 Отвечает за регистрацию пользователей, аутентификацию и выдачу JWT.
 
    - База данных: PostgreSQL (users)
-   - API: http://localhost:5433
+   - API: http://localhost:5001
    - Контекст: IdentityDbContext
 
 ### 2. EventManagement Events
@@ -19,7 +19,7 @@
 Отвечает за управление событиями.
 
    - База данных: PostgreSQL (events)
-   - API: http://localhost:5434
+   - API: http://localhost:5002
    - Контекст: EventsDbContext
 
 ### 3. EventManagement Bookings
@@ -27,7 +27,7 @@
 Отвечает за создание и обработку бронирований.
 
    - База данных: PostgreSQL (bookings)
-   - API: http://localhost:5435
+   - API: http://localhost:5003
    - Контекст: BookingsDbContext
 
 ### 4. EventManagement Shared
@@ -220,10 +220,10 @@ dotnet test tests/EventManagementService.UnitTests
 
 Каждый сервис имеет свой Swagger:
 
-   - Events: http://localhost:5210/swagger
-   - Bookings: http://localhost:5085/swagger
-   - Identity: http://localhost:5232/swagger
-
+   - Identity: http://localhost:5001/swagger
+   - Events: http://localhost:5002/swagger
+   - Bookings: http://localhost:5003/swagger
+   
 ------------------------------------------------------------------------
 
 ### API
