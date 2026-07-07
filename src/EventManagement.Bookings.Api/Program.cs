@@ -62,7 +62,7 @@ namespace EventManagement.Bookings.Api
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.EnvironmentName == "Docker")
             {
                 app.MapOpenApi();
 
