@@ -9,9 +9,9 @@ namespace EventManagement.Events.Infrastructure.Repositories
 {
     public class EventRepository : IEventRepository
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly EventsDbContext _appDbContext;
 
-        public EventRepository(AppDbContext appDbContext)
+        public EventRepository(EventsDbContext appDbContext)
         {
             _appDbContext = appDbContext;
         }

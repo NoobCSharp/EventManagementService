@@ -68,7 +68,7 @@ namespace EventManagement.Events.Api
 
             using (var scope = app.Services.CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var db = scope.ServiceProvider.GetRequiredService<EventsDbContext>();
                 db.Database.Migrate();
             }
 

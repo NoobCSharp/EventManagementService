@@ -27,7 +27,7 @@ namespace EventManagement.Events.Infrastructure
             services.AddHostedService<BookingCreatedKafkaService>();
             services.AddHostedService<BookingCancelledKafkaService>();
 
-            services.AddDbContext<AppDbContext>(options =>
+            services.AddDbContext<EventsDbContext>(options =>
             {
                 options.UseNpgsql(connectionString);                        // Обязательно
 #if DEBUG

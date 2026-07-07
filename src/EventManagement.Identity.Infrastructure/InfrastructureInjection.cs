@@ -20,7 +20,7 @@ namespace EventManagement.Identity.Infrastructure
             var connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("Connection string 'Default' not found.");
 
-            services.AddDbContext<AppDbContext>(options =>
+            services.AddDbContext<IdentityDbContext>(options =>
             {
                 options.UseNpgsql(connectionString);                        // Обязательно
 #if DEBUG

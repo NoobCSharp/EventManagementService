@@ -8,9 +8,9 @@ namespace EventManagement.Bookings.Infrastructure.Repositories
 {
     public class BookingRepository : IBookingRepository
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly BookingsDbContext _appDbContext;
 
-        public BookingRepository(AppDbContext appDbContext)
+        public BookingRepository(BookingsDbContext appDbContext)
         {
             _appDbContext = appDbContext;
         }

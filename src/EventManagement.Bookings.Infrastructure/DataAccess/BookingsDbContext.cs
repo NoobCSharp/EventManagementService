@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManagement.Bookings.Infrastructure.DataAccess
 {
-    public class AppDbContext : DbContext
+    public class BookingsDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        public BookingsDbContext(DbContextOptions<BookingsDbContext> options) : base(options)
         {
         }
 
@@ -13,7 +13,7 @@ namespace EventManagement.Bookings.Infrastructure.DataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(BookingsDbContext).Assembly);
         }
     }
 }

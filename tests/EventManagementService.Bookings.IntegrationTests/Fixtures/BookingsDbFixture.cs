@@ -24,13 +24,13 @@ namespace EventManagementService.Identity.IntegrationTests.Fixtures
             await context.Database.MigrateAsync();
         }
 
-        public AppDbContext CreateContext()
+        public BookingsDbContext CreateContext()
         {
-            var options = new DbContextOptionsBuilder<AppDbContext>()
+            var options = new DbContextOptionsBuilder<BookingsDbContext>()
                 .UseNpgsql(_connectionString)
                 .Options;
 
-            return new AppDbContext(options);
+            return new BookingsDbContext(options);
         }
 
         public async Task ResetAsync()

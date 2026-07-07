@@ -1,42 +1,117 @@
 # EventManagementService
+
 Сервис управления мероприятиями на ASP.NET Core Web API
 
-## Архитектура проекта
-Проект построен по принципам Clean Architecture и разделён на несколько слоёв
+## Архитектура системы
 
-Solution Structure
+Решение построено по принципам Clean Architecture и разделено на 3 микросервиса и одну общую библиотеку:
 
-каталог src/
-EventManagementService                      # Точка входа (Web API)
-Application                                 # Бизнес-логика приложения
-Domain                                      # Доменные сущности и контракты
-Infrastructure                              # Работа с БД и внешними сервисами
+### 1. EventManagement Identity
 
-каталог tests/
-EventManagementService.Tests                # Unit-тесты
-EventManagementService.IntegrationTests     # Интеграционные тесты
+Отвечает за регистрацию пользователей, аутентификацию и выдачу JWT.
+
+   - База данных: PostgreSQL (users)
+   - API: http://localhost:5433
+   - Контекст: IdentityDbContext
+
+### 2. EventManagement Events
+
+Отвечает за управление событиями.
+
+   - База данных: PostgreSQL (events)
+   - API: http://localhost:5434
+   - Контекст: EventsDbContext
+
+### 3. EventManagement Bookings
+
+Отвечает за создание и обработку бронирований.
+
+   - База данных: PostgreSQL (bookings)
+   - API: http://localhost:5435
+   - Контекст: BookingsDbContext
+
+### 4. EventManagement Shared
+
+Shared Kafka Library вынесена в отдельную общую библиотеку (EventManagement.Shared.Kafka).
+
+Содержит:
+
+Kafka Producer / Consumer абстракции
+Базовый Consumer BackgroundService
+Конфигурацию брокера
+Общие топики и константы
+
+Используется всеми сервисами для интеграции с Kafka.
+
+------------------------------------------------------------------------
+
+## Kafka потоки:
+
+ 1. BookingCreated
+   - Публикует BookingService (Producer)
+   - Подписан BookingCreatedKafkaService (Consumer)
+   - При получении BookingCreatedKafkaService обрабатывает запрос на создание бронирования: проверяет существование события, возможность бронирования и наличие свободных мест. При успехе резервирует место и публикует BookingCreatedConfirmed, при любой ошибке — BookingCreatedFailed с причиной.
+
+ 1.1. BookingCreatedConfirmed
+   - Публикует BookingCreatedKafkaService (Producer)
+   - Подписан BookingCreatedConfirmedKafkaService (Consumer)
+   - При получении BookingCreatedConfirmedKafkaService обрабатывает подтверждение бронирования: находит бронь, переводит её в статус Confirmed и сохраняет изменения. Если бронь отсутствует или уже подтверждена — только записывает информацию в лог.
+
+ 1.2. BookingCreatedFailed
+   - Публикует BookingCreatedKafkaService (Producer)
+   - Подписан BookingCreatedFailedKafkaService (Consumer)
+   - При получении BookingCreatedFailedKafkaService обрабатывает отклонение бронирования: находит бронь, переводит её в статус Rejected и сохраняет изменения. Если бронь отсутствует или уже отклонена — записывает информацию в лог.
+    
+ 2. BookingCancelled
+   - Публикует BookingService (Producer)
+   - Подписан BookingCancelledKafkaService (Consumer)
+   - При получении BookingCancelledKafkaService обрабатывает отмену бронирования: проверяет существование события и возможность отмены, освобождает место и публикует BookingCancelledConfirmed. При ошибке публикует BookingCancelledFailed с причиной.
+
+ 2.1. BookingCancelledConfirmed
+   - Публикует BookingCancelledKafkaService (Producer)
+   - Подписан BookingCancelledConfirmedKafkaService (Consumer)
+   - При получении BookingCancelledKafkaService обрабатывает подтверждение отмены бронирования: находит бронь, переводит её в статус Cancelled и сохраняет изменения. Если бронь отсутствует или уже отменена — записывает информацию в лог.
+
+ 2.2. BookingCancelledFailed
+   - Публикует BookingCancelledKafkaService (Producer)
+   - Подписан BookingCancelledFailedKafkaService (Consumer)
+   - При получении BookingCancelledFailedKafkaService обрабатывает ошибку отмены бронирования: проверяет существование брони и фиксирует неуспешную отмену. В текущей реализации изменения не выполняются (планируется обработка причины ошибки и уведомление пользователя).
+
+------------------------------------------------------------------------
 
 ## Требования
+
 Для запуска приложения необходимо:
 
    - Установленный PostgreSQL (версии 12+ рекомендуется)
    - .NET SDK (рекомендуется .NET 8 и выше)
-   - Docker (для запуска интеграционных тестов)
+   - Docker (для Kafka и интеграционных тестов)
 
-## Настройка подключения к базе данных и JWT
+## Настройка конфигурации
 
-Строка подключения и настройки JWT настраивается в файле appsettings.json:
+Пример `appsettings.json` (каждый сервис имеет свой):
 
 ``` json
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
+    "DefaultConnection": "Host=localhost;Port=5434;Database=events;Username=postgres;Password=postgres"
   },
   "Jwt": {
     "Secret": "your_secret_key",
     "Issuer": "your_issuer",
-    "Audience": "your_audience",
-    "LifetimeMinutes": 15
-  }
+    "Audience": "your_audience"
+  },
+
+  "Kafka": {
+    "Producer": {
+      "BootstrapServers": "localhost:9092"
+    },
+    "Consumer": {
+      "BootstrapServers": "localhost:9092",
+      "ConsumerGroup": "events-service",
+      "AutoOffsetReset": "Earliest",
+      "EnableAutoOffsetStore": false,
+      "EnableAutoCommit": false
+    }
 ```
 
 Рекомендации для production по безопасности:
@@ -45,28 +120,27 @@ EventManagementService.IntegrationTests     # Интеграционные те�
    - используйте переменные окружения или внешние хранилища
    - используйте длинный случайный ключ (минимум 32–64 символа)
 
-## Управление схемой базы данных
+## Управление схемой базы данных (EF Core)
 
-Миграции находятся в проекте `Infrastructure`
+Миграции находятся в `Infrastructure` слоях каждого сервиса.
 
-## Создание новой миграции
+## Создание миграции
 
 Из корня решения:
-
 ``` bash
-dotnet ef migrations add MigrationName --project src/Infrastructure --startup-project src/EventManagementService
+dotnet ef migrations add InitialCreate --project src/EventManagement.Events.Infrastructure --startup-project src/EventManagement.Events.Api
 ```
 
 ## Применение миграций к базе данных
 
 ``` bash
-dotnet ef database update --project src/Infrastructure --startup-project src/EventManagementService
+dotnet ef database update --project src/EventManagement.Events.Infrastructure --startup-project src/EventManagement.Events.Api
 ```
 
 ## Удаление последней миграции
 
 ``` bash
-dotnet ef migrations remove --project src/Infrastructure --startup-project src/EventManagementService
+dotnet ef migrations remove --project src/EventManagement.Events.Infrastructure --startup-project src/EventManagement.Events.Api
 ```
 
 ## Сборка проекта
@@ -75,10 +149,18 @@ dotnet ef migrations remove --project src/Infrastructure --startup-project src/E
 dotnet build
 ```
 
-## Запуск проекта
+## Запуск каждого сервиса отдельно
 
 ``` bash
-dotnet run --project src/EventManagementService
+dotnet run --project src/EventManagement.Events.Api
+dotnet run --project src/EventManagement.Bookings.Api
+dotnet run --project src/EventManagement.Identity.Api
+```
+
+## Kafka инфраструктура (Docker)
+
+``` bash
+docker-compose up -d
 ```
 
 ## Запуск всех тестов
@@ -86,6 +168,8 @@ dotnet run --project src/EventManagementService
 ``` bash
 dotnet test
 ```
+
+------------------------------------------------------------------------
 
 ## Интеграционные тесты
 
@@ -96,10 +180,13 @@ dotnet test
  1. Установить Docker
  2. Запустить Docker Desktop / Docker Engine
 
-## Запуск интеграционных тестов
+## Запуск интеграционных тестов каждого сервиса
 
 ``` bash
-dotnet test tests/EventManagementService.IntegrationTests
+dotnet test tests/EventManagementService.Identity.IntegrationTests
+dotnet test tests/EventManagementService.Events.IntegrationTests
+dotnet test tests/EventManagementService.Bookings.IntegrationTests
+
 ```
 
 Интеграционные тесты проверяют:
@@ -130,9 +217,12 @@ dotnet test tests/EventManagementService.UnitTests
 ```
 
 ## Тестирование API проекта после запуска
-Swagger:
 
-http://localhost:5169/swagger/index.html
+Каждый сервис имеет свой Swagger:
+
+   - Events: http://localhost:5210/swagger
+   - Bookings: http://localhost:5085/swagger
+   - Identity: http://localhost:5232/swagger
 
 ------------------------------------------------------------------------
 
@@ -180,7 +270,7 @@ http://localhost:5169/swagger/index.html
 
    - POST   `/events/{id}/book` — создает бронь для события с идентификатором по id
    - GET    `/bookings/{id}` — получает информацию о бронировании по id брони
-   - DELETE `/bookings/{id}` — отменяет бронь по id брони
+   - Cancel `/bookings/{id}` — отменяет бронь по id брони
 
 ------------------------------------------------------------------------
 
@@ -209,7 +299,7 @@ Authorization: Bearer <JWT-токен>
 После запуска приложения откройте Swagger UI:
 
 ```
-http://localhost:5169/swagger/index.html
+http://localhost:5232/swagger/index.html
 ```
 
 ### Шаг 1. Зарегистрируйте пользователя
@@ -300,7 +390,6 @@ Admin — администратор системы
    - `EndAt`          (DateTime) — дата и время окончания события
    - `TotalSeats`     (int) — общее количество мест для бронирования
    - `AvailableSeats` (int) — количество доступных мест для бронирования (при создании события равно `TotalSeats`)
-   - `Bookings`       (List<Booking>) — список броней, связанных с событием
 
 ------------------------------------------------------------------------
 
@@ -313,7 +402,6 @@ Admin — администратор системы
    - `Status`      (BookingStatus) — текущий статус брони (см. ниже)
    - `CreatedAt`   (DateTime) — время создания брони
    - `ProcessedAt` (DateTime) — время, когда бронь была обработана фоновым сервисом (null до обработки)
-   - `Event`       (Event) — событие, к которому относится бронь
 
 ### BookingStatus
 
@@ -344,21 +432,6 @@ Admin — администратор системы
 
 ------------------------------------------------------------------------
 
-### Фоновая обработка броней
-
-За обработку ожидающих броней отвечает `BookingProcessorService`.
-Логика обработки:
-
- 1. Сервис периодически (в цикле) вызывает метод `ProcessBookingAsync`
- 2. Внутри создаётся scope, откуда получается `IBookingStore` и 
- 3. Из `IBookingStore` выбираются брони с `Status == Pending` и `ProcessedAt == null`
- 4. Для каждой найденной брони выполняется внешняя обработка, затем:
-    - `Status` устанавливается в `Confirmed`, в зависимости от доступности свободных мест на событие или `Rejected` если количество мест на событие закончилось или пользователь отменил операцию
-    - `ProcessedAt` устанавливается в `DateTime.UtcNow`
- 5. Исключения логируются
-
-------------------------------------------------------------------------
-
 ### Пример сценария
 
 Пример сценария использования `BookingController`:
@@ -380,7 +453,7 @@ Admin — администратор системы
 }
 ```
 
-3. Подождать пока фоновый сервис `BookingProcessorService` обработает бронь
+3. Подождать пока сервис `BookingCreatedKafkaService` обработает бронь
 4. Получить бронь по Id:
    - `GET /bookings/{id}` теперь status будет `Confirmed` и `ProcessedAt` заполнен
 
@@ -417,3 +490,11 @@ Admin — администратор системы
 
 Остальные 5:
    - получают `409 Conflict`
+
+------------------------------------------------------------------------
+
+### Примечание по архитектуре
+
+   - Kafka вынесена в EventManagement.Shared.Kafka
+   - Сервисы общаются асинхронно
+   - Базы данных полностью изолированы

@@ -7,9 +7,9 @@ namespace EventManagement.Identity.Infrastructure.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly AppDbContext _appDbContext;
+        private readonly IdentityDbContext _appDbContext;
 
-        public UserRepository(AppDbContext appDbContext)
+        public UserRepository(IdentityDbContext appDbContext)
         {
             _appDbContext = appDbContext;
         }

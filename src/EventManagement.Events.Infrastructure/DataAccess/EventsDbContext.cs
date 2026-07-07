@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManagement.Events.Infrastructure.DataAccess
 {
-    public class AppDbContext : DbContext
+    public class EventsDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        public EventsDbContext(DbContextOptions<EventsDbContext> options) : base(options)
         {
         }
 
@@ -13,7 +13,7 @@ namespace EventManagement.Events.Infrastructure.DataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(EventsDbContext).Assembly);
         }
     }
 }

@@ -31,7 +31,7 @@ namespace EventManagement.Bookings.Infrastructure
             services.AddHostedService<BookingCancelledConfirmedKafkaService>();
             services.AddHostedService<BookingCancelledFailedKafkaService>();
 
-            services.AddDbContext<AppDbContext>(options =>
+            services.AddDbContext<BookingsDbContext>(options =>
             {
                 options.UseNpgsql(connectionString);                        // Обязательно
 #if DEBUG

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace EventManagement.Bookings.Infrastructure.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
+    [DbContext(typeof(BookingsDbContext))]
     [Migration("20260702075200_InitialCreate")]
     partial class InitialCreate
     {

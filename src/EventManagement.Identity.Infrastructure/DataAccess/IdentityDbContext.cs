@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventManagement.Identity.Infrastructure.DataAccess
 {
-    public class AppDbContext : DbContext
+    public class IdentityDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        public IdentityDbContext(DbContextOptions<IdentityDbContext> options) : base(options)
         {
         }
 
@@ -13,7 +13,7 @@ namespace EventManagement.Identity.Infrastructure.DataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(IdentityDbContext).Assembly);
         }
     }
 }
