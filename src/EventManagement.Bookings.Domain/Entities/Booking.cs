@@ -25,6 +25,11 @@ namespace EventManagement.Bookings.Domain.Entities
         public required BookingStatus Status { get; set; }
 
         /// <summary>
+        /// Количество забронированных мест
+        /// </summary>
+        public required int SeatCount { get; set; }
+
+        /// <summary>
         /// Дата и время создания брони
         /// </summary>
         public required DateTime CreatedAt { get; set; }

@@ -32,6 +32,10 @@ namespace EventManagement.Bookings.Infrastructure.DataAccess.Configurations
                 .IsRequired()
                 .HasConversion<string>();
 
+            //Указание обязательного поля количества мест бронирования
+            builder.Property(b => b.SeatCount)
+                .IsRequired();
+
             //Указание обязательного поля даты и времени создания брони
             builder.Property(b => b.CreatedAt)
                 .IsRequired();

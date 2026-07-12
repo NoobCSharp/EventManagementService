@@ -39,7 +39,7 @@ namespace EventManagement.Bookings.Application.Services
             return bookingDtoResponse;
         }
 
-        public async Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken cancellationToken = default)
+        public async Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, Guid userId, int seatCount, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync();
 
@@ -48,7 +48,10 @@ namespace EventManagement.Bookings.Application.Services
                 var activeBookingsCount = await _bookingRepository.GetActiveBookingsCountAsync(userId, cancellationToken);
 
                 if (activeBookingsCount >= _bookingOptions.ActiveBookingsLimit)
-                    throw new ActiveBookingLimitExceededException($"Пользователь не может иметь более {_bookingOptions.ActiveBookingsLimit} активных броней.");       
+                    throw new ActiveBookingLimitExceededException($"Пользователь не может иметь более {_bookingOptions.ActiveBookingsLimit} активных броней.");
+
+                if (seatCount <= 0)
+                    throw new BookingValidationException($"Количество мест для бронирования должно быть больше нуля.");
 
                 var booking = new Booking
                 {
@@ -57,6 +60,7 @@ namespace EventManagement.Bookings.Application.Services
                     UserId = userId,
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
+                    SeatCount = seatCount,
                     ProcessedAt = null
                 };
 
@@ -69,6 +73,7 @@ namespace EventManagement.Bookings.Application.Services
                          BookingId = booking.BookingId,
                          EventId = booking.EventId,
                          UserId= userId,
+                         SeatCount= seatCount,
                          CreatedAt = DateTime.UtcNow
                     },
                     booking.EventId.ToString(),
@@ -100,6 +105,7 @@ namespace EventManagement.Bookings.Application.Services
                     { 
                         BookingId = booking.BookingId, 
                         EventId = booking.EventId,
+                        SeatCount = booking.SeatCount,
                         CreatedAt= DateTime.UtcNow,
                     },
                     booking.EventId.ToString(),

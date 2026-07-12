@@ -60,13 +60,13 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
                 return;
             }
 
-            if (!existingEvent.TryReserveSeats())
+            if (!existingEvent.TryReserveSeats(message.SeatCount))
             {
                 await _producer.ProduceAsync(KafkaTopics.BookingCreatedFailed,
                     new BookingCreatedFailedMessage()
                     {
                         BookingId = message.BookingId,
-                        Reason = "Нет доступных мест для бронирования на данное событие!",
+                        Reason = "Нет достаточного количества свободных мест для бронирования на данное событие!",
                         CreatedAt = DateTime.UtcNow,
                     },
                     message.EventId.ToString(),

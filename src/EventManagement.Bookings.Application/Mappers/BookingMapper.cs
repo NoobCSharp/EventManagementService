@@ -13,6 +13,7 @@ namespace EventManagement.Bookings.Application.Mappers
                 EventId = booking.EventId,
                 UserId = booking.UserId,
                 Status = booking.Status,
+                SeatCount = booking.SeatCount,
                 CreatedAt = booking.CreatedAt,
                 ProcessedAt = booking.ProcessedAt
             };

@@ -27,6 +27,7 @@ namespace EventManagementService.UnitTests
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
+                SeatCount = 1,
                 Status = BookingStatus.Pending,
             };
 
@@ -58,6 +59,7 @@ namespace EventManagementService.UnitTests
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
+                SeatCount= 1,
                 Status = BookingStatus.Pending,
             };
 
@@ -85,15 +87,15 @@ namespace EventManagementService.UnitTests
                 Title = "Test event",
                 StartAt = DateTime.UtcNow,
                 EndAt = DateTime.UtcNow.AddDays(1),
-                TotalSeats = 2,
+                TotalSeats = 10,
                 AvailableSeats = 1
             };
 
             // Act
-            fakeEvent.ReleaseSeats();
+            fakeEvent.ReleaseSeats(5);
 
             // Assert
-            fakeEvent.AvailableSeats.Should().Be(2);
+            fakeEvent.AvailableSeats.Should().Be(6);
         }
 
         /// <summary>
@@ -116,6 +118,7 @@ namespace EventManagementService.UnitTests
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 ProcessedAt = processedAt,
+                SeatCount = 1,
                 Status = BookingStatus.Confirmed,
             };
 

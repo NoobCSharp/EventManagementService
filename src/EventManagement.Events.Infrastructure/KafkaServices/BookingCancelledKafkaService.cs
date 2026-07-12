@@ -61,7 +61,7 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
                 return;
             }
 
-            existingEvent.ReleaseSeats();
+            existingEvent.ReleaseSeats(message.SeatCount);
 
             await repository.SaveChangesAsync(cancellationToken);
 

@@ -6,6 +6,8 @@
 
         public required Guid EventId { get; init; }
 
+        public required int SeatCount { get; init; }
+
         public required DateTime CreatedAt { get; set; }
     }
 }

@@ -23,8 +23,11 @@ namespace EventManagement.Bookings.Application.Interfaces
         /// <param name="eventId">
         /// Уникальный идентификатор события, к которому относится бронь.
         /// </param>
-        /// /// <param name="userId">
+        /// <param name="userId">
         /// Уникальный идентификатор пользователя, к которому относится бронь.
+        /// </param>
+        /// /// <param name="seatCount">
+        /// Количество мест для бронирования.
         /// </param>
         /// <returns>
         /// Объект брони.
@@ -35,7 +38,7 @@ namespace EventManagement.Bookings.Application.Interfaces
         /// Если нет доступных мест на событие, бросает исключение NoAvailableSeatsException.
         /// Если пользователь превысил лимит активных бронирований, бросает исключение ActiveBookingLimitExceededException.
         /// </remarks>
-        Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, Guid userId, CancellationToken cancellationToken = default);
+        Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, Guid userId, int seatCount, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Отменяет бронь по указанному идентификатору с учетом прав пользователя.
