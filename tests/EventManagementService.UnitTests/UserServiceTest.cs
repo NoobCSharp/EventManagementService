@@ -1,9 +1,9 @@
-﻿using Application.Dtos.UserDtos;
-using Application.Interfaces;
-using Application.Services;
-using Domain.Entities;
-using Domain.Enums;
-using Domain.Exceptions;
+﻿using EventManagement.Identity.Application.Dtos;
+using EventManagement.Identity.Application.Interfaces;
+using EventManagement.Identity.Application.Services;
+using EventManagement.Identity.Domain.Entities;
+using EventManagement.Identity.Domain.Enums;
+using EventManagement.Identity.Domain.Exceptions;
 using FluentAssertions;
 using Moq;
 
@@ -14,24 +14,22 @@ namespace EventManagementService.UnitTests
         private readonly Mock<IUserRepository> _userRepositoryMock = new();
         private readonly Mock<IPasswordHasher> _passwordHasherMock = new();
         private readonly Mock<IJwtTokenGenerator> _jwtTokenGeneratorMock = new();
-        private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
         private UserService CreateUserService()
         {
             return new UserService(
                 _userRepositoryMock.Object,
                 _passwordHasherMock.Object,
-                _jwtTokenGeneratorMock.Object,
-                _unitOfWorkMock.Object
+                _jwtTokenGeneratorMock.Object
             );
         }
 
-        #region Successful scenarios for LoginUserAsync
+        #region LoginUserAsync
 
         [Fact]
         public async Task LoginUserAsync_ValidCredentials_ShouldReturnToken()
         {
-            // Arrange (подготовка)
+            // Arrange
             var request = new LoginUserRequest
             {
                 Login = "test",
@@ -60,21 +58,17 @@ namespace EventManagementService.UnitTests
 
             var service = CreateUserService();
 
-            // Act (действие)
+            // Act
             var result = await service.LoginUserAsync(request);
 
-            // Assert (проверка)
+            // Assert
             result.Should().Be("fake-jwt-token");
         }
 
-        #endregion
-
-        #region Unsuccessful scenarios for LoginUserAsync 
-
         [Fact]
-        public async Task LoginUserAsync_UserNotFound_ShouldThrow_NotFoundException()
+        public async Task LoginUserAsync_IfUserNotFound_ShouldThrow_UserNotFoundException()
         {
-            // Arrange (подготовка)
+            // Arrange
             var request = new LoginUserRequest
             {
                 Login = "test",
@@ -87,14 +81,14 @@ namespace EventManagementService.UnitTests
 
             var service = CreateUserService();
 
-            // Assert (проверка)
+            // Act & Assert
             await service.Invoking(s => s.LoginUserAsync(request))
                 .Should()
-                .ThrowAsync<NotFoundException>();
+                .ThrowAsync<UserNotFoundException>();
         }
 
         [Fact]
-        public async Task LoginUserAsync_InvalidPassword_ShouldThrow_NotFoundException()
+        public async Task LoginUserAsync_InvalidPassword_ShouldThrow_UserNotFoundException()
         {
             // Arrange
             var request = new LoginUserRequest
@@ -121,15 +115,15 @@ namespace EventManagementService.UnitTests
 
             var service = CreateUserService();
 
-            // Assert (проверка)
+            // Act & Assert
             await service.Invoking(s => s.LoginUserAsync(request))
                 .Should()
-                .ThrowAsync<NotFoundException>();
+                .ThrowAsync<UserNotFoundException>();
         }
 
         #endregion
 
-        #region Successful scenarios for RegisterUserAsync
+        #region RegisterUserAsync
 
         [Fact]
         public async Task RegisterUserAsync_ValidRequest_ShouldCreateUserAndSave()
@@ -157,26 +151,21 @@ namespace EventManagementService.UnitTests
 
             // Assert
             _userRepositoryMock.Verify(
-                r => r.AddUserAsync(
-                    It.Is<User>(
-                        u => u.Login == request.Login 
-                        && u.PasswordHash == "hashed123" 
-                        && u.Role == request.Role)), 
+                r => r.AddUserAsync(It.Is<User>(u =>
+                    u.Login == request.Login &&
+                    u.PasswordHash == "hashed123" &&
+                    u.Role == request.Role)),
                 Times.Once);
 
-            _unitOfWorkMock.Verify(
-                u => u.SaveChangesAsync(), 
+            _userRepositoryMock.Verify(
+                r => r.SaveChangesAsync(),
                 Times.Once);
         }
 
-        #endregion
-
-        #region Unsuccessful scenarios for RegisterUserAsync 
-
         [Fact]
-        public async Task RegisterUserAsync_UserAlreadyExists_ShouldThrow_BadRequestException()
+        public async Task RegisterUserAsync_UserAlreadyExists_ShouldThrow_UserAlreadyExistsException()
         {
-            // Arrange (подготовка)
+            // Arrange
             var request = new RegisterUserRequest
             {
                 Login = "test",
@@ -198,10 +187,10 @@ namespace EventManagementService.UnitTests
 
             var service = CreateUserService();
 
-            // Assert (проверка)
+            // Act & Assert
             await service.Invoking(s => s.RegisterUserAsync(request))
                 .Should()
-                .ThrowAsync<BadRequestException>();
+                .ThrowAsync<UserAlreadyExistsException>();
         }
 
         #endregion
