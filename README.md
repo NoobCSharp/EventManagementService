@@ -299,7 +299,7 @@ Authorization: Bearer <JWT-токен>
 После запуска приложения откройте Swagger UI:
 
 ```
-http://localhost:5232/swagger/index.html
+http://localhost:5001/swagger/index.html
 ```
 
 ### Шаг 1. Зарегистрируйте пользователя
