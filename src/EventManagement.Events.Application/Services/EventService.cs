@@ -4,16 +4,21 @@ using EventManagement.Events.Infrastructure.Interfaces;
 using EventManagement.Events.Infrastructure.Mappers;
 using EventManagement.Events.Domain.Entities;
 using EventManagement.Events.Domain.Exceptions;
+using EventManagement.Events.Application.Interfaces;
 
 namespace EventManagement.Events.Infrastructure.Services
 {
     public class EventService : IEventService
     {
         private readonly IEventRepository _eventRepository;
+        private readonly ICacheService _cacheService;
 
-        public EventService(IEventRepository eventRepository)
+        private const string EventCacheKeyPrefix = "event";
+
+        public EventService(IEventRepository eventRepository, ICacheService cacheService)
         {
             _eventRepository = eventRepository;
+            _cacheService = cacheService;
         }
 
         public async Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default)
@@ -33,12 +38,26 @@ namespace EventManagement.Events.Infrastructure.Services
 
         public async Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
+            var cacheKey = $"{EventCacheKeyPrefix}:{id}";
+
+            // Сначала проверяем Redis
+            var cachedEvent = await _cacheService.GetAsync<EventDtoResponse>(cacheKey, cancellationToken);
+
+            if (cachedEvent is not null)
+                return cachedEvent;
+
+            // Если в Redis нет данных - читаем из БД
             var existingEvent = await _eventRepository.GetEventByIdAsync(id, cancellationToken);
 
             if (existingEvent is null)
                 throw new EventNotFoundException("Событие по указанному Id не найдено!");
 
-            return EventMapper.EventToResponse(existingEvent);
+            var response = EventMapper.EventToResponse(existingEvent);
+
+            // Сохраняем результат в Redis с TTL 10 минут
+            await _cacheService.SetAsync(cacheKey, response, TimeSpan.FromMinutes(10), cancellationToken);
+
+            return response;
         }
 
         public async Task<EventDtoResponse> AddEventAsync(EventDtoRequest eventDtoRequest, CancellationToken cancellationToken = default)
@@ -82,9 +101,6 @@ namespace EventManagement.Events.Infrastructure.Services
             // Забронированные места
             var bookedSeats = existingEvent.TotalSeats - existingEvent.AvailableSeats;
 
-            // TODO подумать над тем, что будет,
-            // если при обновлении события общее количество мест будет меньше,
-            // чем количество уже забронированных мест.
             if (eventDtoRequest.TotalSeats < bookedSeats)
                 throw new EventValidationException("Общее количество мест не может быть меньше количества уже забронированных мест!");
 
@@ -96,6 +112,10 @@ namespace EventManagement.Events.Infrastructure.Services
             existingEvent.AvailableSeats = eventDtoRequest.TotalSeats - bookedSeats;
 
             await _eventRepository.SaveChangesAsync(cancellationToken);
+
+            // Обновляем запись в кешэ сразу после изменения, стратегия Update-on-Write
+            var cacheKey = $"{EventCacheKeyPrefix}:{id}";
+            await _cacheService.SetAsync(cacheKey, existingEvent, TimeSpan.FromMinutes(10), cancellationToken);
         }
 
         public async Task RemoveEventAsync(Guid id, CancellationToken cancellationToken = default)
@@ -108,6 +128,10 @@ namespace EventManagement.Events.Infrastructure.Services
             _eventRepository.RemoveEvent(existingEvent);
 
             await _eventRepository.SaveChangesAsync(cancellationToken);
+
+            // Удаляем запись из кэша
+            var cacheKey = $"{EventCacheKeyPrefix}:{id}";
+            await _cacheService.RemoveAsync(cacheKey, cancellationToken);
         }
     }
 }

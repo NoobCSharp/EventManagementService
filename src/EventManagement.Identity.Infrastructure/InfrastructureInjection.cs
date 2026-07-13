@@ -33,12 +33,12 @@ namespace EventManagement.Identity.Infrastructure
 
             services.AddScoped<IUserRepository, UserRepository>();
 
-            services.Configure<JwtGenerationOptions>(configuration.GetSection("Jwt"));
+            services.Configure<JwtGenerationOptions>(configuration.GetSection(JwtGenerationOptions.SectionName));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    var jwt = configuration.GetSection("Jwt").Get<JwtGenerationOptions>()!;
+                    var jwt = configuration.GetSection(JwtGenerationOptions.SectionName).Get<JwtGenerationOptions>()!;
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {

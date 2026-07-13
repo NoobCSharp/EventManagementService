@@ -104,6 +104,37 @@ services:
       retries: 10
 
   # ==========================================
+  # Redis
+  # ==========================================
+  redis:
+
+    # Официальный образ Redis
+    image: redis:latest
+
+    container_name: redis
+
+    restart: unless-stopped
+
+    # Порт для подключения с локального компьютера
+    ports:
+      - "6379:6379"
+
+    # Сохраняем данные Redis между перезапусками
+    volumes:
+      - redis-data:/data
+
+    # Включаем AOF (Append Only File),
+    # чтобы данные сохранялись на диск
+    command: redis-server --appendonly yes
+
+    # Проверяем готовность Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ==========================================
   # Users Database
   # ==========================================
   users-db:
@@ -339,6 +370,9 @@ volumes:
 
   # Сообщения Kafka.
   kafka-data:
+
+  # Данные Redis.
+  redis-data:
 
   # База Users.
   users-db-data:

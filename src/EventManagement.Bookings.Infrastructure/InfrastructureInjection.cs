@@ -44,10 +44,10 @@ namespace EventManagement.Bookings.Infrastructure
 
             services.AddScoped<IBookingRepository, BookingRepository>();
 
-            services.Configure<JwtValidationOptions>(configuration.GetSection("Jwt"));
+            services.Configure<JwtValidationOptions>(configuration.GetSection(JwtValidationOptions.SectionName));
 
             var jwtOptions = configuration
-                .GetSection("Jwt")
+                .GetSection(JwtValidationOptions.SectionName)
                 .Get<JwtValidationOptions>()!;
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
