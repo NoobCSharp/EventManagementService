@@ -1,10 +1,14 @@
-﻿using EventManagement.Events.Infrastructure.Interfaces;
+﻿using EventManagement.Events.Application.Caching;
+using EventManagement.Events.Application.Interfaces;
+using EventManagement.Events.Infrastructure.Interfaces;
+using EventManagement.Events.Infrastructure.Mappers;
 using EventManagement.Shared.Kafka.Abstraction;
 using EventManagement.Shared.Kafka.Interfaces;
 using EventManagement.Shared.Kafka.Messages;
 using EventManagement.Shared.Kafka.Topics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EventManagement.Events.Infrastructure.KafkaServices
 {
@@ -13,11 +17,15 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
         private readonly IKafkaProducer _producer;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public BookingCancelledKafkaService(IKafkaConsumer consumer, IKafkaProducer producer, IServiceScopeFactory scopeFactory, ILogger<BookingCancelledKafkaService> logger)
+        private readonly CacheTtlOptions _options;
+
+        public BookingCancelledKafkaService(IKafkaConsumer consumer, IKafkaProducer producer, IServiceScopeFactory scopeFactory, IOptions<CacheTtlOptions> options, ILogger<BookingCancelledKafkaService> logger)
             : base(consumer, logger)
         {
             _producer = producer;
             _scopeFactory = scopeFactory;
+
+            _options = options.Value;
         }
 
         protected override string Topic => KafkaTopics.BookingCancelled;
@@ -74,6 +82,12 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
                 },
                 message.EventId.ToString(),
                 cancellationToken);
+
+            var value = EventMapper.EventToResponse(existingEvent);
+
+            var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+
+            await cacheService.SetAsync(CacheKeys.Event(existingEvent.EventId), value, TimeSpan.FromMinutes(_options.EventMinutes), cancellationToken);
         }
     }
 }

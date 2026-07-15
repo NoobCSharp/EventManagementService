@@ -8,6 +8,7 @@ using EventManagement.Shared.Kafka.Messages;
 using EventManagement.Shared.Kafka.Topics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EventManagement.Events.Infrastructure.KafkaServices
 {
@@ -16,11 +17,15 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
         private readonly IKafkaProducer _producer;
         private readonly IServiceScopeFactory _scopeFactory;
 
-        public BookingCreatedKafkaService(IKafkaConsumer consumer, IKafkaProducer producer, IServiceScopeFactory scopeFactory, ILogger<BookingCreatedKafkaService> logger)
+        private readonly CacheTtlOptions _options;
+
+        public BookingCreatedKafkaService(IKafkaConsumer consumer, IKafkaProducer producer, IServiceScopeFactory scopeFactory, IOptions<CacheTtlOptions> options, ILogger<BookingCreatedKafkaService> logger)
             : base(consumer, logger)
         {
             _producer = producer;
             _scopeFactory = scopeFactory;
+
+            _options = options.Value;
         }
 
         protected override string Topic => KafkaTopics.BookingCreated;
@@ -94,7 +99,7 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
 
             var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
 
-            await cacheService.SetAsync(CacheKeys.Event(existingEvent.EventId), value, TimeSpan.FromMinutes(10), cancellationToken);
+            await cacheService.SetAsync(CacheKeys.Event(existingEvent.EventId), value, TimeSpan.FromMinutes(_options.EventMinutes), cancellationToken);
         }
     }
 }
