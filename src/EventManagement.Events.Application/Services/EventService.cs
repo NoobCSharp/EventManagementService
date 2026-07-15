@@ -116,7 +116,7 @@ namespace EventManagement.Events.Infrastructure.Services
 
             var value = EventMapper.EventToResponse(existingEvent);
 
-            // Обновляем запись в кешэ сразу после изменения, стратегия Update-on-Write и устанавливаем TTL
+            // Обновляем запись в кэша сразу после изменения, стратегия Update-on-Write и устанавливаем TTL
             await _cacheService.SetAsync(CacheKeys.Event(id), value, TimeSpan.FromMinutes(_options.EventMinutes), cancellationToken);
         }
 

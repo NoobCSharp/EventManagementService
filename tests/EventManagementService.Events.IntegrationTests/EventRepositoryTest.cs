@@ -43,7 +43,7 @@ namespace EventManagementService.Events.IntegrationTests
 
             // Assert
             // Для проверки создаётся отдельный контекст
-            // это исключает чтение из кеша и гарантирует, что данные реально записались в базу.
+            // это исключает чтение из кэша и гарантирует, что данные реально записались в базу.
             await using var verifyContext = _fixture.CreateContext();
 
             var verifyRepository = new EventRepository(verifyContext);
