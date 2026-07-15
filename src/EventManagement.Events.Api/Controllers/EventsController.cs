@@ -60,6 +60,23 @@ namespace EventManagement.Events.Api.Controllers
         }
 
         /// <summary>
+        /// Метод возвращает 10 самых популярных событий.
+        /// </summary>
+        /// <returns>Коллекция объектов <see cref="EventDtoResponse"/> с наибольшим процентом проданных мест.</returns>
+        /// <response code="200">Список популярных событий успешно получен</response>
+        /// <remarks>
+        /// Доступ: открыт для всех пользователей <b>AllowAnonymous</b>.
+        /// </remarks>
+        [HttpGet("top")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IReadOnlyCollection<EventDtoResponse>>> GetTopEvents(CancellationToken cancellationToken = default)
+        {
+            var topTenEvents = await _eventService.GetTopEventsAsync(cancellationToken);
+
+            return Ok(topTenEvents);
+        }
+
+        /// <summary>
         /// Метод добавляет объект события в коллекцию.
         /// </summary>
         /// <param name="eventDtoRequest">Новый объект события.</param>

@@ -1,8 +1,8 @@
-﻿namespace EventManagement.Events.Infrastructure.CachingServices.Options
+﻿namespace EventManagement.Events.Infrastructure.CachingService.CachingOptions
 {
     /// <summary>
     /// Настройки подключения к Redis.
-    /// Используются для конфигурирования клиента StackExchange.Redis через IOptions.
+    /// Используются для конфигурирования клиента StackExchange.Redis
     /// </summary>
     public class RedisOptions
     {
@@ -46,6 +46,6 @@
         /// Количество повторных попыток подключения к Redis
         /// при возникновении ошибки соединения.
         /// </summary>
-        public int ConnectRetry { get; set; } = 3;
+        public int ConnectRetry { get; set; } = 3; 
     }
 }

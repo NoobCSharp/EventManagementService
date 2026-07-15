@@ -39,7 +39,7 @@ namespace EventManagement.Bookings.Application.Services
             return bookingDtoResponse;
         }
 
-        public async Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, Guid userId, int seatCount, CancellationToken cancellationToken = default)
+        public async Task<BookingDtoResponse> CreateBookingAsync(Guid eventId, Guid userId, BookingCreateDtoRequest request, CancellationToken cancellationToken = default)
         {
             await _semaphore.WaitAsync();
 
@@ -50,7 +50,7 @@ namespace EventManagement.Bookings.Application.Services
                 if (activeBookingsCount >= _bookingOptions.ActiveBookingsLimit)
                     throw new ActiveBookingLimitExceededException($"Пользователь не может иметь более {_bookingOptions.ActiveBookingsLimit} активных броней.");
 
-                if (seatCount <= 0)
+                if (request.SeatCount <= 0)
                     throw new BookingValidationException($"Количество мест для бронирования должно быть больше нуля.");
 
                 var booking = new Booking
@@ -60,7 +60,7 @@ namespace EventManagement.Bookings.Application.Services
                     UserId = userId,
                     Status = BookingStatus.Pending,
                     CreatedAt = DateTime.UtcNow,
-                    SeatCount = seatCount,
+                    SeatCount = request.SeatCount,
                     ProcessedAt = null
                 };
 
@@ -73,7 +73,7 @@ namespace EventManagement.Bookings.Application.Services
                          BookingId = booking.BookingId,
                          EventId = booking.EventId,
                          UserId= userId,
-                         SeatCount= seatCount,
+                         SeatCount = request.SeatCount,
                          CreatedAt = DateTime.UtcNow
                     },
                     booking.EventId.ToString(),

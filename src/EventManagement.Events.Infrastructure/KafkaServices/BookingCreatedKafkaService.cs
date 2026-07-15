@@ -1,4 +1,7 @@
-﻿using EventManagement.Events.Infrastructure.Interfaces;
+﻿using EventManagement.Events.Application.Caching;
+using EventManagement.Events.Application.Interfaces;
+using EventManagement.Events.Infrastructure.Interfaces;
+using EventManagement.Events.Infrastructure.Mappers;
 using EventManagement.Shared.Kafka.Abstraction;
 using EventManagement.Shared.Kafka.Interfaces;
 using EventManagement.Shared.Kafka.Messages;
@@ -86,6 +89,12 @@ namespace EventManagement.Events.Infrastructure.KafkaServices
                 },
                 message.EventId.ToString(),
                 cancellationToken);
+
+            var value = EventMapper.EventToResponse(existingEvent);
+
+            var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+
+            await cacheService.SetAsync(CacheKeys.Event(existingEvent.EventId), value, TimeSpan.FromMinutes(10), cancellationToken);
         }
     }
 }

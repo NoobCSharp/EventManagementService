@@ -21,6 +21,17 @@ namespace EventManagement.Events.Infrastructure.Repositories
             await _appDbContext.Events.AddAsync(@event, cancellationToken);
         }
 
+        public async Task<IReadOnlyCollection<Event>> GetTopEventsAsync(int count = 10, CancellationToken cancellationToken = default)
+        {
+            // Возвращает топ 10 событий где были зарезервированы места, сортировка идет от большего к меньшему количеству зарезервированных мест.
+
+            return await _appDbContext.Events.AsNoTracking()
+                .Where(e => e.AvailableSeats < e.TotalSeats)
+                .OrderByDescending(e => (double)(e.TotalSeats - e.AvailableSeats) / e.TotalSeats)
+                .Take(count)
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task<Event?> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
             return await _appDbContext.Events.FirstOrDefaultAsync(e => e.EventId == id, cancellationToken);

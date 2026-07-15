@@ -1,4 +1,6 @@
-﻿using EventManagement.Events.Domain.Entities;
+﻿using EventManagement.Events.Application.Caching;
+using EventManagement.Events.Application.Interfaces;
+using EventManagement.Events.Domain.Entities;
 using EventManagement.Events.Domain.Exceptions;
 using EventManagement.Events.Infrastructure.Common;
 using EventManagement.Events.Infrastructure.Dtos;
@@ -6,6 +8,7 @@ using EventManagement.Events.Infrastructure.Filters;
 using EventManagement.Events.Infrastructure.Interfaces;
 using EventManagement.Events.Infrastructure.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace EventManagementService.UnitTests
@@ -13,10 +16,13 @@ namespace EventManagementService.UnitTests
     public class EventServiceTest
     {
         private readonly Mock<IEventRepository> _eventRepositoryMock = new();
+        private readonly Mock<ICacheService> _cacheServiceMock = new();
 
+        private readonly IOptions<CacheTtlOptions> _cacheOptions = Options.Create(new CacheTtlOptions());
+            
         private EventService CreateEventService()
         {
-            return new EventService(_eventRepositoryMock.Object);
+            return new EventService(_eventRepositoryMock.Object, _cacheServiceMock.Object, _cacheOptions);
         }
 
         #region Successful scenarios for EventService
@@ -756,6 +762,155 @@ namespace EventManagementService.UnitTests
             _eventRepositoryMock.Verify(
                 r => r.SaveChangesAsync(),
                 Times.Never);
+        }
+
+        #endregion
+
+        #region #region Successful scenarios for EventService cache hit
+
+        [Fact]
+        public async Task GetEventByIdAsync_WhenEventExistsInCache_ShouldReturnCachedEvent()
+        {
+            // Arrange
+            var service = CreateEventService();
+
+            var eventId = Guid.NewGuid();
+
+            var cachedEvent = new EventDtoResponse();
+
+            _cacheServiceMock.Setup(
+                c => c.GetAsync<EventDtoResponse>(
+                    CacheKeys.Event(eventId),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(cachedEvent);
+
+            // Act
+            var result = await service.GetEventByIdAsync(eventId);
+
+            // Assert
+            result.Should().BeEquivalentTo(cachedEvent);
+
+            _eventRepositoryMock.Verify(
+                r => r.GetEventByIdAsync(
+                    It.IsAny<Guid>(), 
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+
+            _cacheServiceMock.Verify(
+                c => c.SetAsync<EventDtoResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<EventDtoResponse>(),
+                    It.IsAny<TimeSpan>(),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateEventAsync_ShouldUpdateCache_AfterSaving()
+        {
+            // Arrange
+            var service = CreateEventService();
+
+            var eventId = Guid.NewGuid();
+
+            var @event = new Event
+            {
+                EventId = eventId,
+                Title = "Old",
+                Description = "Old",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(1),
+                TotalSeats = 100,
+                AvailableSeats = 80
+            };
+
+            var request = new EventDtoRequest
+            {
+                Title = "New",
+                Description = "New",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(2),
+                TotalSeats = 120
+            };
+
+            _eventRepositoryMock.Setup(
+                r => r.GetEventByIdAsync(
+                    eventId, 
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(@event);
+
+            // Act
+            await service.UpdateEventAsync(eventId, request);
+
+            // Assert
+            _eventRepositoryMock.Verify(
+                r => r.SaveChangesAsync(
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(
+                    CacheKeys.Event(eventId),
+                    It.Is<EventDtoResponse>(e => e.EventId == eventId),
+                    It.Is<TimeSpan>(t => t == TimeSpan.FromMinutes(_cacheOptions.Value.EventMinutes)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        #endregion
+
+        #region #region Unsuccessful scenarios for EventService cache miss
+
+        [Fact]
+        public async Task GetEventByIdAsync_WhenCacheMiss_ShouldLoadFromRepository_AndCacheResult()
+        {
+            // Arrange
+            var service = CreateEventService();
+
+            var eventId = Guid.NewGuid();
+
+            var @event = new Event
+            {
+                EventId = eventId,
+                Title = "Test",
+                Description = "Description",
+                StartAt = DateTime.UtcNow,
+                EndAt = DateTime.UtcNow.AddHours(1),
+                TotalSeats = 100,
+                AvailableSeats = 100
+            };
+
+            _cacheServiceMock.Setup(
+                c => c.GetAsync<EventDtoResponse>(
+                    CacheKeys.Event(eventId),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((EventDtoResponse?)null);
+
+            _eventRepositoryMock.Setup(
+                r => r.GetEventByIdAsync(
+                    eventId, 
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(@event);
+
+            // Act
+            var result = await service.GetEventByIdAsync(eventId);
+
+            // Assert
+            result.EventId.Should().Be(eventId);
+
+            _eventRepositoryMock.Verify(
+                r => r.GetEventByIdAsync(
+                    eventId, 
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+
+            _cacheServiceMock.Verify(
+                c => c.SetAsync(
+                    CacheKeys.Event(eventId),
+                    It.Is<EventDtoResponse>(e => e.EventId == eventId),
+                    It.Is<TimeSpan>(t => t == TimeSpan.FromMinutes(_cacheOptions.Value.EventMinutes)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         #endregion

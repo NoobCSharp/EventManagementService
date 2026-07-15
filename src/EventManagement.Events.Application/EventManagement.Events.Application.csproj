@@ -15,4 +15,8 @@
     <ProjectReference Include="..\EventManagement.Events.Domain\EventManagement.Events.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CachOptions\" />
+  </ItemGroup>
+
 </Project>

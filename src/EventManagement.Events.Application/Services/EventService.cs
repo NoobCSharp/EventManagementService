@@ -1,10 +1,12 @@
-﻿using EventManagement.Events.Infrastructure.Dtos;
+﻿using EventManagement.Events.Application.Caching;
+using EventManagement.Events.Application.Interfaces;
+using EventManagement.Events.Domain.Entities;
+using EventManagement.Events.Domain.Exceptions;
+using EventManagement.Events.Infrastructure.Dtos;
 using EventManagement.Events.Infrastructure.Filters;
 using EventManagement.Events.Infrastructure.Interfaces;
 using EventManagement.Events.Infrastructure.Mappers;
-using EventManagement.Events.Domain.Entities;
-using EventManagement.Events.Domain.Exceptions;
-using EventManagement.Events.Application.Interfaces;
+using Microsoft.Extensions.Options;
 
 namespace EventManagement.Events.Infrastructure.Services
 {
@@ -12,13 +14,14 @@ namespace EventManagement.Events.Infrastructure.Services
     {
         private readonly IEventRepository _eventRepository;
         private readonly ICacheService _cacheService;
+        private readonly CacheTtlOptions _options;
 
-        private const string EventCacheKeyPrefix = "event";
-
-        public EventService(IEventRepository eventRepository, ICacheService cacheService)
+        public EventService(IEventRepository eventRepository, ICacheService cacheService, IOptions<CacheTtlOptions> options)
         {
             _eventRepository = eventRepository;
             _cacheService = cacheService;
+
+            _options = options.Value;
         }
 
         public async Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default)
@@ -38,10 +41,8 @@ namespace EventManagement.Events.Infrastructure.Services
 
         public async Task<EventDtoResponse> GetEventByIdAsync(Guid id, CancellationToken cancellationToken = default)
         {
-            var cacheKey = $"{EventCacheKeyPrefix}:{id}";
-
             // Сначала проверяем Redis
-            var cachedEvent = await _cacheService.GetAsync<EventDtoResponse>(cacheKey, cancellationToken);
+            var cachedEvent = await _cacheService.GetAsync<EventDtoResponse>(CacheKeys.Event(id), cancellationToken);
 
             if (cachedEvent is not null)
                 return cachedEvent;
@@ -54,8 +55,8 @@ namespace EventManagement.Events.Infrastructure.Services
 
             var response = EventMapper.EventToResponse(existingEvent);
 
-            // Сохраняем результат в Redis с TTL 10 минут
-            await _cacheService.SetAsync(cacheKey, response, TimeSpan.FromMinutes(10), cancellationToken);
+            // Сохраняем результат в Redis с TTL
+            await _cacheService.SetAsync(CacheKeys.Event(id), response, TimeSpan.FromMinutes(_options.EventMinutes), cancellationToken);
 
             return response;
         }
@@ -113,9 +114,10 @@ namespace EventManagement.Events.Infrastructure.Services
 
             await _eventRepository.SaveChangesAsync(cancellationToken);
 
-            // Обновляем запись в кешэ сразу после изменения, стратегия Update-on-Write
-            var cacheKey = $"{EventCacheKeyPrefix}:{id}";
-            await _cacheService.SetAsync(cacheKey, existingEvent, TimeSpan.FromMinutes(10), cancellationToken);
+            var value = EventMapper.EventToResponse(existingEvent);
+
+            // Обновляем запись в кешэ сразу после изменения, стратегия Update-on-Write и устанавливаем TTL
+            await _cacheService.SetAsync(CacheKeys.Event(id), value, TimeSpan.FromMinutes(_options.EventMinutes), cancellationToken);
         }
 
         public async Task RemoveEventAsync(Guid id, CancellationToken cancellationToken = default)
@@ -130,8 +132,26 @@ namespace EventManagement.Events.Infrastructure.Services
             await _eventRepository.SaveChangesAsync(cancellationToken);
 
             // Удаляем запись из кэша
-            var cacheKey = $"{EventCacheKeyPrefix}:{id}";
-            await _cacheService.RemoveAsync(cacheKey, cancellationToken);
+            await _cacheService.RemoveAsync(CacheKeys.Event(id), cancellationToken);
+        }
+
+        public async Task<IReadOnlyCollection<EventDtoResponse>> GetTopEventsAsync(CancellationToken cancellationToken = default)
+        {
+            // Сначала проверяем Redis
+            var cachedTopEvents = await _cacheService.GetAsync<IReadOnlyCollection<EventDtoResponse>>(CacheKeys.Top10Events(), cancellationToken);
+
+            if (cachedTopEvents is not null)
+                return cachedTopEvents;
+
+            // Если в Redis нет данных - читаем из БД
+            var events = await _eventRepository.GetTopEventsAsync(10, cancellationToken);
+
+            var response = events.Select(EventMapper.EventToResponse).ToList();
+
+            // Сохраняем результат в Redis с TTL
+            await _cacheService.SetAsync(CacheKeys.Top10Events(), response, TimeSpan.FromMinutes(_options.Top10EventsMinutes), cancellationToken);
+
+            return response;
         }
     }
 }

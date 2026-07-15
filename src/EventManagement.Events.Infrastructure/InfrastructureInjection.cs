@@ -1,6 +1,6 @@
 ﻿using EventManagement.Events.Application.Interfaces;
-using EventManagement.Events.Infrastructure.CachingServices;
-using EventManagement.Events.Infrastructure.CachingServices.Options;
+using EventManagement.Events.Infrastructure.CachingService;
+using EventManagement.Events.Infrastructure.CachingService.CachingOptions;
 using EventManagement.Events.Infrastructure.DataAccess;
 using EventManagement.Events.Infrastructure.Interfaces;
 using EventManagement.Events.Infrastructure.KafkaServices;

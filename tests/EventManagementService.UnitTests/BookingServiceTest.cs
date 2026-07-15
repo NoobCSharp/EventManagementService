@@ -1,4 +1,5 @@
-﻿using EventManagement.Bookings.Application.Interfaces;
+﻿using EventManagement.Bookings.Application.Dtos;
+using EventManagement.Bookings.Application.Interfaces;
 using EventManagement.Bookings.Application.Options;
 using EventManagement.Bookings.Application.Services;
 using EventManagement.Bookings.Domain.Entities;
@@ -76,12 +77,16 @@ namespace EventManagementService.UnitTests
             // Arrange
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
-            var seatCount = 1;
+
+            var request = new BookingCreateDtoRequest() 
+            { 
+                SeatCount = 1 
+            };
 
             var service = CreateBookingService();
 
             // Act
-            var response = await service.CreateBookingAsync(eventId, userId, seatCount);
+            var response = await service.CreateBookingAsync(eventId, userId, request);
 
             // Assert
             response.Should().NotBeNull();
@@ -213,7 +218,11 @@ namespace EventManagementService.UnitTests
             // Arrange
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
-            var seatCount = 1;
+
+            var request = new BookingCreateDtoRequest()
+            {
+                SeatCount = 1
+            };
 
             _bookingRepositoryMock
                 .Setup(r => r.GetActiveBookingsCountAsync(userId))
@@ -223,7 +232,7 @@ namespace EventManagementService.UnitTests
 
             // Act & Assert
             await service.Invoking(s =>
-                s.CreateBookingAsync(eventId, userId, seatCount))
+                s.CreateBookingAsync(eventId, userId, request))
                 .Should()
                 .ThrowAsync<ActiveBookingLimitExceededException>();
         }
@@ -265,13 +274,17 @@ namespace EventManagementService.UnitTests
             // Arrange
             var eventId = Guid.NewGuid();
             var bookingId = Guid.NewGuid();
-            var seatCount = 0;
+
+            var request = new BookingCreateDtoRequest()
+            {
+                SeatCount = 0
+            };
 
             var service = CreateBookingService();
 
             // Act & Assert
             await service.Invoking(s =>
-                s.CreateBookingAsync(eventId, bookingId, seatCount))
+                s.CreateBookingAsync(eventId, bookingId, request))
                 .Should()
                 .ThrowAsync<BookingValidationException>();
         }
