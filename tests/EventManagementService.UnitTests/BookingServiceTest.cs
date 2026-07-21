@@ -1,4 +1,5 @@
-﻿using EventManagement.Bookings.Application.Interfaces;
+﻿using EventManagement.Bookings.Application.Dtos;
+using EventManagement.Bookings.Application.Interfaces;
 using EventManagement.Bookings.Application.Options;
 using EventManagement.Bookings.Application.Services;
 using EventManagement.Bookings.Domain.Entities;
@@ -48,6 +49,7 @@ namespace EventManagementService.UnitTests
                 EventId = eventId,
                 UserId = userId,
                 Status = BookingStatus.Pending,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -76,10 +78,15 @@ namespace EventManagementService.UnitTests
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
 
+            var request = new BookingCreateDtoRequest() 
+            { 
+                SeatCount = 1 
+            };
+
             var service = CreateBookingService();
 
             // Act
-            var response = await service.CreateBookingAsync(eventId, userId);
+            var response = await service.CreateBookingAsync(eventId, userId, request);
 
             // Assert
             response.Should().NotBeNull();
@@ -119,6 +126,7 @@ namespace EventManagementService.UnitTests
                 EventId = eventId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                SeatCount = 1,
                 Status = BookingStatus.Pending
             };
 
@@ -157,6 +165,7 @@ namespace EventManagementService.UnitTests
                 EventId = eventId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                SeatCount = 1,
                 Status = BookingStatus.Pending
             };
 
@@ -204,11 +213,16 @@ namespace EventManagementService.UnitTests
         }
 
         [Fact]
-        public async Task CreateBookingAsync_WhenBookingLimitIsReached_ShouldThrow()
+        public async Task CreateBookingAsync_WhenBookingLimitIsReached_ShouldThrow_ActiveBookingLimitExceededException()
         {
             // Arrange
             var eventId = Guid.NewGuid();
             var userId = Guid.NewGuid();
+
+            var request = new BookingCreateDtoRequest()
+            {
+                SeatCount = 1
+            };
 
             _bookingRepositoryMock
                 .Setup(r => r.GetActiveBookingsCountAsync(userId))
@@ -218,7 +232,7 @@ namespace EventManagementService.UnitTests
 
             // Act & Assert
             await service.Invoking(s =>
-                s.CreateBookingAsync(eventId, userId))
+                s.CreateBookingAsync(eventId, userId, request))
                 .Should()
                 .ThrowAsync<ActiveBookingLimitExceededException>();
         }
@@ -237,6 +251,7 @@ namespace EventManagementService.UnitTests
                 EventId = eventId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                SeatCount = 1,
                 Status = BookingStatus.Cancelled
             };
 
@@ -249,6 +264,27 @@ namespace EventManagementService.UnitTests
             // Act & Assert
             await service.Invoking(s =>
                 s.CancelBookingAsync(bookingId, userId, Role.User))
+                .Should()
+                .ThrowAsync<BookingValidationException>();
+        }
+
+        [Fact]
+        public async Task CreateBooking_With_SeatCountLessOrEqualZero_ShouldThrow_BookingValidationException()
+        {
+            // Arrange
+            var eventId = Guid.NewGuid();
+            var bookingId = Guid.NewGuid();
+
+            var request = new BookingCreateDtoRequest()
+            {
+                SeatCount = 0
+            };
+
+            var service = CreateBookingService();
+
+            // Act & Assert
+            await service.Invoking(s =>
+                s.CreateBookingAsync(eventId, bookingId, request))
                 .Should()
                 .ThrowAsync<BookingValidationException>();
         }
@@ -268,6 +304,7 @@ namespace EventManagementService.UnitTests
                 EventId = eventId,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
+                SeatCount= 1,
                 Status = BookingStatus.Confirmed
             };
 

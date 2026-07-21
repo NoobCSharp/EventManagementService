@@ -44,6 +44,7 @@ namespace EventManagement.Bookings.Api.Controllers
         /// Метод создает бронирование для события.
         /// </summary>
         /// <param name="id">Идентификатор события для добавления брони</param>
+        /// <param name="request">Объект с информацией для бронирования</param>
         /// <returns>Созданная бронь и заголовок Location, 
         /// указывающий на метод получения брони по Id.</returns>
         /// <response code="202">Бронь успешно создана</response>
@@ -55,11 +56,11 @@ namespace EventManagement.Bookings.Api.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
-        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<BookingDtoResponse>> CreateBooking(Guid id, [FromBody] BookingCreateDtoRequest request, CancellationToken cancellationToken = default)
         {
             var userId = ClaimsPrincipalExtensions.GetUserId(User);
 
-            var bookingDtoResponse = await _bookingService.CreateBookingAsync(id, userId, cancellationToken);
+            var bookingDtoResponse = await _bookingService.CreateBookingAsync(id, userId, request, cancellationToken);
 
             return AcceptedAtAction(
                 nameof(GetBookingById),

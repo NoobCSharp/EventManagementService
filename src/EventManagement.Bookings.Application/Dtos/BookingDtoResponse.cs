@@ -25,6 +25,11 @@ namespace EventManagement.Bookings.Application.Dtos
         public BookingStatus Status { get; init; }
 
         /// <summary>
+        /// Количество забронированных мест
+        /// </summary>
+        public int SeatCount { get; init; }
+
+        /// <summary>
         /// Дата и время создания брони
         /// </summary>
         public DateTime CreatedAt { get; init; }

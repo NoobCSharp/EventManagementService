@@ -18,6 +18,17 @@ namespace EventManagement.Events.Infrastructure.Interfaces
         Task<PagedResult<Event>> GetEventsAsync(EventFilter filter, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Возвращает события с наибольшим процентом проданных мест.
+        /// </summary>
+        /// <param name="count">
+        /// Количество событий, которое необходимо вернуть. По умолчанию — 10.
+        /// </param>
+        /// <returns>
+        /// Коллекция событий, отсортированных по убыванию процента проданных мест.
+        /// </returns>
+        Task<IReadOnlyCollection<Event>> GetTopEventsAsync(int count = 10, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Получает событие по Id из хранилища.
         /// </summary>
         /// <param name="id">

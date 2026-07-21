@@ -48,7 +48,7 @@ namespace EventManagement.Events.Api
             builder.Services.AddOpenApi();
 
             // Регистрация сервисов приложения и репозиториев
-            builder.Services.AddApplicationServices();
+            builder.Services.AddApplicationServices(builder.Configuration);
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();

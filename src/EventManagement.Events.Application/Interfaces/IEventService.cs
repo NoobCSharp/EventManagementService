@@ -32,6 +32,15 @@ namespace EventManagement.Events.Infrastructure.Interfaces
         Task<EventDtoPaginatedResponse> GetEventsAsync(EventFilter eventFilter, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Получение списка событий с наибольшим процентом проданных мест.
+        /// События сортируются по убыванию процента заполненности и возвращаются в количестве до 10.
+        /// </summary>
+        /// <returns>
+        /// Коллекция событий с наибольшим процентом проданных мест.
+        /// </returns>
+        Task<IReadOnlyCollection<EventDtoResponse>> GetTopEventsAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Удаляет событие по его уникальному идентификатору.
         /// Если событие с указанным Id не найдено, будет выброшено исключение NotFoundException.
         /// </summary>

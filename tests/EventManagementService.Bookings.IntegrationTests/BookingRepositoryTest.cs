@@ -33,6 +33,7 @@ namespace EventManagementService.IntegrationTests
                 BookingId = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = userId,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Status = BookingStatus.Pending
             };
@@ -70,6 +71,7 @@ namespace EventManagementService.IntegrationTests
                 BookingId = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = userId,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Status = BookingStatus.Pending
             };
@@ -107,6 +109,7 @@ namespace EventManagementService.IntegrationTests
                 BookingId = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = userId,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Status = BookingStatus.Confirmed
             };
@@ -116,6 +119,7 @@ namespace EventManagementService.IntegrationTests
                 BookingId = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = userId,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow.AddHours(2),
                 Status = BookingStatus.Pending
             };
@@ -125,6 +129,7 @@ namespace EventManagementService.IntegrationTests
                 BookingId = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = userId,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Status = BookingStatus.Pending
             };
@@ -134,6 +139,7 @@ namespace EventManagementService.IntegrationTests
                 BookingId = Guid.NewGuid(),
                 EventId = eventId,
                 UserId = userId,
+                SeatCount = 1,
                 CreatedAt = DateTime.UtcNow.AddHours(1),
                 Status = BookingStatus.Rejected
             };
