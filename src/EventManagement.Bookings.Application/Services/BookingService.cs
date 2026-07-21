@@ -106,7 +106,7 @@ namespace EventManagement.Bookings.Application.Services
                         BookingId = booking.BookingId, 
                         EventId = booking.EventId,
                         SeatCount = booking.SeatCount,
-                        CreatedAt= DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
                     },
                     booking.EventId.ToString(),
                     cancellationToken);
