@@ -1,0 +1,42 @@
+# ==========================================
+# Общие настройки Prometheus
+# ==========================================
+global:
+
+  # Как часто собирать метрики
+  scrape_interval: 15s
+
+  # Как часто выполнять оценку правил
+  evaluation_interval: 15s
+
+# ==========================================
+# Источники метрик
+# ==========================================
+scrape_configs:
+
+  # ========================================
+  # Identity API
+  # ========================================
+  - job_name: identity-api
+
+    static_configs:
+      - targets: ["identity-api:8080"]
+    metrics_path: /metrics
+
+  # ========================================
+  # Events API
+  # ========================================
+  - job_name: events-api
+
+    static_configs:
+      - targets: ["events-api:8080"]
+    metrics_path: /metrics
+
+  # ========================================
+  # Bookings API
+  # ========================================
+  - job_name: bookings-api
+
+    static_configs:
+      - targets: ["bookings-api:8080"]
+    metrics_path: /metrics

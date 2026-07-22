@@ -3,6 +3,8 @@ using EventManagement.Identity.Application;
 using EventManagement.Identity.Infrastructure;
 using EventManagement.Identity.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Formatting.Compact;
 using System.Text.Json.Serialization;
 
 namespace EventManagement.Identity.Api
@@ -37,6 +39,10 @@ namespace EventManagement.Identity.Api
             builder.Services.AddApplicationServices();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
+            builder.Host.UseSerilog((ctx, cfg) =>
+                cfg.ReadFrom.Configuration(ctx.Configuration)
+                    .WriteTo.Console(new CompactJsonFormatter()));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -56,6 +62,7 @@ namespace EventManagement.Identity.Api
                 db.Database.Migrate();
             }
 
+            app.MapPrometheusScrapingEndpoint();
             app.MapControllers();
 
             app.Run();
