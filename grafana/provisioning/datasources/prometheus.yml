@@ -1,0 +1,27 @@
+# Версия provisioning API Grafana
+apiVersion: 1
+
+# Список источников данных, которые Grafana создаст автоматически
+datasources:
+
+  # Источник Prometheus
+  - name: Prometheus
+
+    # Тип источника данных
+    type: prometheus
+
+    # Фиксированный UID источника данных для использования в dashboard JSON.
+    uid: prometheus
+
+    # Как Grafana обращается к источнику
+    # proxy = через сервер Grafana
+    access: proxy
+
+    # Адрес Prometheus внутри Docker-сети
+    url: http://prometheus:9090
+
+    # Сделать источником по умолчанию
+    isDefault: true
+
+    # Разрешить обновление настроек через UI
+    editable: true

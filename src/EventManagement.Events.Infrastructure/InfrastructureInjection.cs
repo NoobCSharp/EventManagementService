@@ -13,6 +13,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using StackExchange.Redis;
 using System.Text;
 
@@ -90,6 +93,29 @@ namespace EventManagement.Events.Infrastructure
                         ClockSkew = TimeSpan.Zero
                     };
                 });
+
+            services.AddOpenTelemetry()
+                .WithTracing(tracing => tracing
+                    .AddAspNetCoreInstrumentation(options =>
+                    {
+                        // Исключаем системные запросы из трейсинга
+                        options.Filter = httpContext =>
+                        {
+                            var path = httpContext.Request.Path;
+
+                            // Если запрос идёт на /health или /metrics, спан НЕ создаётся
+                            return !path.StartsWithSegments("/health") && !path.StartsWithSegments("/metrics");
+                        };
+                    })
+                    .AddHttpClientInstrumentation()
+                    .AddEntityFrameworkCoreInstrumentation()
+                    .AddOtlpExporter(o => o.Endpoint = new Uri(configuration["Otlp:Endpoint"]!)))
+                .WithMetrics(metrics => metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddPrometheusExporter())
+                .ConfigureResource(r => r
+                    .AddService(serviceName: "events-service"));
 
             return services;
         }

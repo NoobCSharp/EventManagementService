@@ -184,11 +184,11 @@ services:
     volumes:
 
       # Конфигурация Prometheus
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
     command:
 
-      # Путь к файлу конфигурации ЗАЧЕМ
+      # Путь к файлу конфигурации
       - "--config.file=/etc/prometheus/prometheus.yml"
 
   # ==========================================
@@ -211,7 +211,8 @@ services:
       # OpenTelemetry OTLP (gRPC)
       - "4317:4317"
 
-    environment: #ЗАЧЕМ
+    # Включить OTLP endpoint для OpenTelemetry
+    environment:
       COLLECTOR_OTLP_ENABLED: "true"
 
   # ==========================================
@@ -244,6 +245,14 @@ services:
       # Сохраняем настройки, пользователей и дашборды
       - grafana-data:/var/lib/grafana
 
+      # Provisioning:
+      # автоматическое создание datasource,
+      # dashboard providers и других настроек
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+
+      # JSON-файлы Dashboard
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
 
   # ==========================================
   # Users Database

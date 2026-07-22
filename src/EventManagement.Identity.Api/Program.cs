@@ -62,8 +62,11 @@ namespace EventManagement.Identity.Api
                 db.Database.Migrate();
             }
 
-            app.MapPrometheusScrapingEndpoint();
+            // API
             app.MapControllers();
+
+            // Prometheus endpoint
+            app.MapPrometheusScrapingEndpoint();
 
             app.Run();
         }

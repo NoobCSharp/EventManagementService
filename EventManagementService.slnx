@@ -26,8 +26,4 @@
     <Project Path="tests/EventManagementService.Identity.IntegrationTests/EventManagementService.Identity.IntegrationTests.csproj" Id="735f2c79-c79b-445e-80bf-b9fcefca325f" />
     <Project Path="tests/EventManagementService.UnitTests/EventManagementService.UnitTests.csproj" Id="0228cf7e-d874-4035-9aa2-3849bb75a7b5" />
   </Folder>
-  <Folder Name="/YML/">
-    <File Path="docker-compose.yml" />
-    <File Path="prometheus.yml" />
-  </Folder>
 </Solution>

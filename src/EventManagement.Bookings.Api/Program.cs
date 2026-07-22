@@ -4,6 +4,8 @@ using EventManagement.Bookings.Infrastructure.DataAccess;
 using EventManagementService.Middlewares.ExceptionMiddleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Serilog;
+using Serilog.Formatting.Compact;
 using System.Text.Json.Serialization;
 
 namespace EventManagement.Bookings.Api
@@ -59,6 +61,10 @@ namespace EventManagement.Bookings.Api
             builder.Services.AddApplicationServices();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
+            builder.Host.UseSerilog((ctx, cfg) =>
+                cfg.ReadFrom.Configuration(ctx.Configuration)
+                    .WriteTo.Console(new CompactJsonFormatter()));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -79,8 +85,12 @@ namespace EventManagement.Bookings.Api
                 var db = scope.ServiceProvider.GetRequiredService<BookingsDbContext>();
                 db.Database.Migrate();
             }
-
+            
+            // API
             app.MapControllers();
+
+            // Prometheus endpoint
+            app.MapPrometheusScrapingEndpoint();
 
             app.Run();
         }

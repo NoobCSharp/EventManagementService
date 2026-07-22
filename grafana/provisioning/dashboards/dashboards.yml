@@ -1,0 +1,33 @@
+# Версия формата provisioning Grafana
+apiVersion: 1
+
+
+# Список провайдеров Dashboard
+# Провайдер отвечает за загрузку и управление dashboard-файлами
+providers:
+
+  # Имя провайдера (может быть любым)
+  - name: EventManagementService
+
+    # Папка в интерфейсе Grafana,
+    # куда будут помещены dashboards
+    # "" означает корневую папку General
+    folder: "EventManagementService"
+
+    # Уникальный UID папки Grafana.
+    # Должен совпадать со значением "folderUID" в dashboard JSON.
+    # Если значения отличаются, Grafana отклонит загрузку dashboard.
+    folderUid: "dfsvf4t7thlhce"
+
+    # Тип хранилища dashboard
+    # file = dashboards берутся из файловой системы
+    type: file
+
+    # Разрешить редактирование dashboard через Grafana UI
+    editable: true
+
+    # Настройки файлового провайдера
+    options:
+
+      # Путь внутри контейнера
+      path: /var/lib/grafana/dashboards

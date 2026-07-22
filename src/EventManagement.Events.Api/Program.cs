@@ -3,6 +3,8 @@ using EventManagement.Events.Infrastructure;
 using EventManagement.Events.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 namespace EventManagement.Events.Api
 {
@@ -51,6 +53,10 @@ namespace EventManagement.Events.Api
             builder.Services.AddApplicationServices(builder.Configuration);
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
+            builder.Host.UseSerilog((ctx, cfg) =>
+                cfg.ReadFrom.Configuration(ctx.Configuration)
+                    .WriteTo.Console(new CompactJsonFormatter()));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -72,7 +78,11 @@ namespace EventManagement.Events.Api
                 db.Database.Migrate();
             }
 
+            // API
             app.MapControllers();
+
+            // Prometheus endpoint
+            app.MapPrometheusScrapingEndpoint();
 
             app.Run();
         }
